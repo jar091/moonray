@@ -9,11 +9,11 @@
 // and alpha which we display/save.
 //
 #pragma once
-#include "DebugSamplesRecArray.h"
-#include "SampleIdBuff.h"
-#include "Util.h"
-#include "adaptive/ActivePixelMask.h"
-#include "adaptive/AdaptiveRegions.h"
+#include <moonray/rendering/rndr/DebugSamplesRecArray.h>
+#include <moonray/rendering/rndr/SampleIdBuff.h>
+#include <moonray/rendering/rndr/Util.h>
+#include <moonray/rendering/rndr/adaptive/ActivePixelMask.h>
+#include <moonray/rendering/rndr/adaptive/AdaptiveRegions.h>
 
 #include <moonray/common/mcrt_util/Atomic.h>
 #include <moonray/common/mcrt_util/MutexPool2D.h>
@@ -32,7 +32,7 @@
 #include <vector>
 
 namespace scene_rdl2 {
-namespace math { class Viewport; }
+namespace math { struct Viewport; }
 namespace fb_util {
     class ActivePixels;
     class TileExtrapolation;

@@ -1,33 +1,55 @@
 // Copyright 2023-2025 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "ResumeHistoryMetaData.h"
+#include <moonray/rendering/rndr/ResumeHistoryMetaData.h>
 
 #include <moonray/rendering/pbr/core/Statistics.h>
 
 #include <scene_rdl2/common/platform/Platform.h>
 #include <scene_rdl2/render/util/GetEnv.h>
 #include <scene_rdl2/render/util/StrUtil.h>
+#ifdef _WIN32
+// Put back the empty `far` / `near` macros scene_rdl2's DebugLog.h #undefs:
+// <winsock2.h>, reached through TimeUtil.h, still spells its pointers `FAR *`.
+#define far
+#define near
+#endif
 #include <scene_rdl2/render/util/TimeUtil.h>
 
 #include <cstdlib>              // getenv()
+#include <cstring>              // strlen()
 #include <sstream>
 #include <string>
 
 #include <stdarg.h>             // va_arg
+#ifdef _WIN32
+#include <windows.h>            // GetComputerNameA()
+#else
 #include <unistd.h>             // gethostname()
+#endif
 
 namespace {
-    
+
 inline
 std::string
 getHostname()
 {
+#ifdef _WIN32
+    // gethostname() is a Winsock call and would drag WSAStartup() in; the Win32
+    // computer name is the same machine identifier and needs no initialization.
+    char buff[MAX_COMPUTERNAME_LENGTH + 1];
+    DWORD size = static_cast<DWORD>(sizeof(buff));
+    if (!GetComputerNameA(buff, &size)) {
+        return std::string("");
+    }
+    return std::string(buff, size);
+#else
     char buff[4096];
     if (gethostname(buff, 4096) == -1) {
         return std::string("");
     }
     return std::string(buff);
+#endif
 }
 
 inline

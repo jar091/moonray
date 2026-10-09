@@ -15,7 +15,7 @@
 //
 //=============================================================================
 
-#include "DcxChannelSet.h"
+#include <moonray/deepfile/DcxChannelSet.h>
 #include "DcxChannelDefs.h"
 #include "DcxPixel.h"
 #include "DcxSpMask.h"

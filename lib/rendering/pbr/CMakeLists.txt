@@ -84,7 +84,7 @@ function(make_ispc_target target sources stubsDestination)
 
     set_target_properties(${target} PROPERTIES
         ISPC_HEADER_SUFFIX _ispc_stubs.h
-        ISPC_HEADER_DIRECTORY /${relBinDir}/${stubsDestination}
+        ISPC_HEADER_DIRECTORY ${GLOBAL_ISPC_HEADER_DIR_PREFIX}${relBinDir}/${stubsDestination}
         ISPC_INSTRUCTION_SETS ${GLOBAL_ISPC_INSTRUCTION_SETS}
 	LINKER_LANGUAGE CXX
     )
@@ -181,7 +181,10 @@ function(symbolsFromBinFilename binFile resultStart resultEnd)
         string(CONCAT start "_binary_" ${base} )
         string(CONCAT end "_binary_" ${base} "_len")
     else()
-        string(REGEX REPLACE "[\/\.\-]" "_" base ${binFile})
+        # ':' is in the set because a Windows path starts with a drive letter,
+        # and the result has to be a valid C identifier. No Linux/macOS path
+        # in this build contains one, so the extra character is a no-op there.
+        string(REGEX REPLACE "[\/\.\:\-]" "_" base ${binFile})
         string(CONCAT start "_binary_" ${base} "_start")
         string(CONCAT end "_binary_" ${base} "_end")
     endif()
@@ -264,6 +267,10 @@ include(${PROJECT_NAME}SamplingDefinitions)
 writeSamplingDefinitionsHeader("${headerDefs}") # passing a list requires quotes
 
 # translate ".bin" source files to ".o" files
+if(MSVC AND NOT DEFINED PYTHON_EXECUTABLE)
+    set(PYTHON_EXECUTABLE python)
+endif()
+
 foreach(binFile ${binFiles})
     get_filename_component(baseName ${binFile} NAME_WLE)
     set(objFile sampler/${baseName}.o)
@@ -274,6 +281,24 @@ foreach(binFile ${binFiles})
             OUTPUT  ${objFile}
             DEPENDS ${binFile}
             COMMAND xxd -i -n _binary_${baseName} "${binFile}" "${srcFile}" && cc -c "${srcFile}" -o "${objFile}")
+    elseif(MSVC)
+        # There is no objcopy in the MSVC toolchain, and its ELF output would
+        # not link into a PE image anyway. bin2coff.py writes the same thing
+        # in COFF form: a .data section holding the file verbatim plus the two
+        # boundary symbols. They are passed in explicitly so that
+        # symbolsFromBinFilename() above stays the only place that spells them.
+        set(objFile sampler/${baseName}.obj)
+        symbolsFromBinFilename(${binFile} startSymbol endSymbol)
+        add_custom_command(
+            OUTPUT  ${objFile}
+            DEPENDS ${binFile} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/bin2coff.py
+            COMMAND ${PYTHON_EXECUTABLE}
+                            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/bin2coff.py
+                            "${binFile}"
+                            "${objFile}"
+                            ${startSymbol}
+                            ${endSymbol}
+            COMMENT "Embedding ${baseName}.bin into ${objFile}")
     else()
         add_custom_command(
             OUTPUT  ${objFile}
@@ -309,6 +334,7 @@ target_sources(${component}
     PRIVATE
         camera/Camera.cc
         camera/BakeCamera.cc
+        camera/DicingCamera.cc
         camera/DomeMaster3DCamera.cc
         camera/FisheyeCamera.cc
         camera/OrthographicCamera.cc

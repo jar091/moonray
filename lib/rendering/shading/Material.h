@@ -10,6 +10,7 @@
 #include <scene_rdl2/scene/rdl2/Material.h>
 
 #include <memory>
+#include <mutex>
 
 // ShadeQueue access log information is dumped at the end of rendering when this directive is used.
 // This should be commented out for the release version.
@@ -472,7 +473,7 @@ protected:
 
     std::shared_ptr<DeferredEntriesManager> mDeferredEntriesManager;
     
-    static tbb::mutex       sMaterialListMutex;
+    static std::mutex       sMaterialListMutex;
     static MaterialPtrList  sAllMaterials;
     static MaterialPtrList  sQueuelessMaterials;
 
@@ -495,14 +496,14 @@ forEachShadeQueue(mcrt_common::ThreadLocalState *tls, const Body &body)
     if (!tls) {
         // This is a special case and should crawl all the NUMA-nod's shade queues sequentially
         std::shared_ptr<mcrt_common::MemoryAffinityManager> memAffMgr = mcrt_common::AffinityManager::get()->getMem();
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
         if (!memAffMgr->getMemAffinityEnable()) {
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
             //
             // Memory Affinity disabled
             //
             crawlNumaNodeShadeQueues(~0);
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
         } else {
             //
             // Memory Affinity enabled
@@ -515,7 +516,7 @@ forEachShadeQueue(mcrt_common::ThreadLocalState *tls, const Body &body)
                 }
             }
         }
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
     } else {
         crawlNumaNodeShadeQueues(tls->mArena.getNumaNodeId());

@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Util.h"
+#include <moonray/rendering/geom/prim/Util.h>
 
 #include <moonray/rendering/geom/prim/Instance.h>
 

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "LightAccelerator.h"
-#include "MeshLight.h"
+#include <moonray/rendering/pbr/light/LightAccelerator.h>
+#include <moonray/rendering/pbr/light/MeshLight.h>
 
 #include <moonray/rendering/pbr/light/LightAccelerator_ispc_stubs.h>
 

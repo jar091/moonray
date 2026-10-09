@@ -12,7 +12,11 @@
 
 #include <cmath> // sqrtf
 #include <limits.h> // HOST_NAME_MAX
+#ifdef _WIN32
+#include <windows.h> // GetComputerNameA()
+#else
 #include <unistd.h> // gethostname()
+#endif
 
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX 255
@@ -31,8 +35,16 @@ f2uc(const float f)
 std::string
 getHostName()
 {
+#ifdef _WIN32
+    // gethostname() is a Winsock call and would drag WSAStartup() in; the Win32
+    // computer name is the same machine identifier and needs no initialization.
+    char hostname[MAX_COMPUTERNAME_LENGTH + 1];
+    DWORD hostnameSize = static_cast<DWORD>(sizeof(hostname));
+    if (!::GetComputerNameA(hostname, &hostnameSize)) return "unknown";
+#else
     char hostname[HOST_NAME_MAX + 1];
     if (::gethostname(hostname, sizeof(hostname)) == -1) return "unknown";
+#endif
     return std::string(hostname);
 }
 

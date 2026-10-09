@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include "PbrTLState.h"
+#include <moonray/rendering/pbr/core/PbrTLState.h>
 
 #include <scene_rdl2/common/fb_util/PixelBuffer.h>
 #include <scene_rdl2/scene/rdl2/RenderOutput.h>
 
 #include <cstring>
 #include <list>
-#include <tbb/mutex.h>
+#include <mutex>
 #include <vector>
 
 namespace moonray {
@@ -236,7 +236,7 @@ private:
  */
     static const int mMutexTileSize = 15;
     // force mutex to be cache-line aligned for speed
-    struct CACHE_ALIGN AlignedMutex : public tbb::mutex {};
+    struct CACHE_ALIGN AlignedMutex : public std::mutex {};
     AlignedMutex *mPixelMutexes;
     int getMutexIdx(unsigned x, unsigned y) const {
         return (y % mMutexTileSize) * mMutexTileSize + (x % mMutexTileSize);

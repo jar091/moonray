@@ -4,6 +4,8 @@
 #include <scene_rdl2/common/math/Math.h>
 #include <scene_rdl2/scene/rdl2/rdl2.h>
 
+#include <array>   // rdl2::Camera::computeProjectionMatrix() takes a std::array
+
 #include "attributes.cc"
 
 using namespace scene_rdl2;

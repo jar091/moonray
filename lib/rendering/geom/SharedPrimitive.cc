@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "SharedPrimitive.h"
+#include <moonray/rendering/geom/SharedPrimitive.h>
 
 #include <embree4/rtcore.h>
 

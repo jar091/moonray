@@ -3,7 +3,7 @@
 
 /// @file VolumeAssignmentTable.cc
 
-#include "VolumeAssignmentTable.h"
+#include <moonray/rendering/geom/prim/VolumeAssignmentTable.h>
 
 #include <moonray/rendering/geom/prim/Instance.h>
 #include <moonray/rendering/geom/prim/Primitive.h>

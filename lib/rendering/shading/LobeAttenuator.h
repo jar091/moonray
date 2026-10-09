@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "bsdf/Bsdf.h"
-#include "bsdf/Fresnel.h"
-#include "bsdf/under/BsdfUnderClearcoat.h"
-#include "bsdf/under/BsdfUnderClearcoatTransmission.h"
-#include "bssrdf/Bssrdf.h"
-#include "bssrdf/VolumeSubsurface.h"
+#include <moonray/rendering/shading/bsdf/Bsdf.h>
+#include <moonray/rendering/shading/bsdf/Fresnel.h>
+#include <moonray/rendering/shading/bsdf/under/BsdfUnderClearcoat.h>
+#include <moonray/rendering/shading/bsdf/under/BsdfUnderClearcoatTransmission.h>
+#include <moonray/rendering/shading/bssrdf/Bssrdf.h>
+#include <moonray/rendering/shading/bssrdf/VolumeSubsurface.h>
 
 #include <scene_rdl2/common/math/Color.h>
 #include <scene_rdl2/common/math/Math.h>

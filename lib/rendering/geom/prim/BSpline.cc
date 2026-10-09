@@ -5,7 +5,7 @@
 /// @file BSpline.cc
 ///
 
-#include "BSpline.h"
+#include <moonray/rendering/geom/prim/BSpline.h>
 
 #include <moonray/rendering/geom/prim/BVHUserData.h>
 #include <moonray/rendering/geom/prim/Instance.h>

@@ -3,7 +3,7 @@
 
 //
 //
-#include "AdaptiveRenderTileInfo.h"
+#include <moonray/rendering/rndr/AdaptiveRenderTileInfo.h>
 
 #include <sstream>
 

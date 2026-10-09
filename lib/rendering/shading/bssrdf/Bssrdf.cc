@@ -3,8 +3,8 @@
 
 /// @file Bssrdf.cc
 
-#include "Bssrdf.h"
-#include "Dipole.h"
+#include <moonray/rendering/shading/bssrdf/Bssrdf.h>
+#include <moonray/rendering/shading/bssrdf/Dipole.h>
 #include "NormalizedDiffusion.h"
 #include <moonray/rendering/shading/bsdf/Fresnel.h>
 #include <moonray/rendering/shading/Util.h>

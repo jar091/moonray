@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "hash.h"
-#include "Moebius.hh"
-#include "Sample.h"
+#include <moonray/rendering/pbr/sampler/hash.h>
+#include <moonray/rendering/pbr/sampler/Moebius.hh>
+#include <moonray/rendering/pbr/sampler/Sample.h>
 
 #include <scene_rdl2/render/util/BitUtils.h>
 

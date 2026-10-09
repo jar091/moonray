@@ -1,6 +1,6 @@
 // Copyright 2023-2025 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
-#include "Material.h"
+#include <moonray/rendering/shading/Material.h>
 
 #include <moonray/rendering/mcrt_common/AffinityManager.h>
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>
@@ -9,7 +9,7 @@
 namespace moonray {
 namespace shading {
 
-tbb::mutex Material::sMaterialListMutex;
+std::mutex Material::sMaterialListMutex;
 MaterialPtrList Material::sAllMaterials;
 MaterialPtrList Material::sQueuelessMaterials;
 
@@ -66,7 +66,7 @@ std::shared_ptr<ShadeQueueAccessLog> gShadeQueueAccessLog;
 
 //------------------------------------------------------------------------------------------
 
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
 ShadeQueueInfo::ShadeQueueInfo(const unsigned numaNodeId,
                                const unsigned shadeQueueSize,
                                ShadeQueue::Handler handler,
@@ -88,7 +88,7 @@ ShadeQueueInfo::ShadeQueueInfo(const unsigned numaNodeId,
     mShadeQueue->init(shadeQueueSize, mShadeEntries);
     mShadeQueue->setHandler(handler, const_cast<Material*>(mMaterial));
 }
-#else // else PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
 
 ShadeQueueInfo::ShadeQueueInfo(const unsigned numaNodeId,
                                const unsigned shadeQueueSize,
@@ -162,9 +162,9 @@ ShadeQueueInfo::ShadeQueueInfo(const unsigned numaNodeId,
     }
 }
 
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX split
 
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
 
 ShadeQueueInfo::~ShadeQueueInfo()
 //
@@ -182,7 +182,7 @@ ShadeQueueInfo::~ShadeQueueInfo()
     scene_rdl2::util::alignedFreeDtor(mShadeQueue);
 }
 
-#else // else PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
 
 ShadeQueueInfo::~ShadeQueueInfo()
 //
@@ -219,7 +219,7 @@ ShadeQueueInfo::~ShadeQueueInfo()
     }
 }
 
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX split
 
 #ifdef SHADEQUEUE_ACCESS_LOG
 void
@@ -638,7 +638,7 @@ Material::Material(const scene_rdl2::rdl2::SceneObject & owner) :
     mMaterialLabelId(-1),   // no material label
     mLpeMaterialLabelId(-1) // no lpe material label
 {
-    tbb::mutex::scoped_lock lock(sMaterialListMutex);
+    std::lock_guard<std::mutex> lock(sMaterialListMutex);
     sAllMaterials.push_back(this);
     sQueuelessMaterials.push_back(this);
     mMaterialId = 0;
@@ -649,7 +649,7 @@ Material::~Material()
     // Not thread safe, all objects should be created/destroyed on a single thread.
     mShadeQueueInfoManager = nullptr; // explicitly delete shadeQueueInfoManager;
     {
-        tbb::mutex::scoped_lock lock(sMaterialListMutex);
+        std::lock_guard<std::mutex> lock(sMaterialListMutex);
 
         // Remove ourselves from global list of Materials.
         for (auto it = sAllMaterials.begin(); it != sAllMaterials.end(); ++it) {
@@ -723,7 +723,7 @@ Material::allocShadeQueues(const unsigned shadeQueueSize, ShadeQueue::Handler ha
     }
 
     {
-        tbb::mutex::scoped_lock lockMaterialMutex(sMaterialListMutex);
+        std::lock_guard<std::mutex> lockMaterialMutex(sMaterialListMutex);
 
         for (auto it = sQueuelessMaterials.begin(); it != sQueuelessMaterials.end(); ++it) {
             (*it)->allocShadeQueue(shadeQueueSize, handler);

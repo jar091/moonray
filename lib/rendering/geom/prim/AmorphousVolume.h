@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "VdbVolume.h"
+#include <moonray/rendering/geom/prim/VdbVolume.h>
 
 #include <amorphous_core/File.h>
 #include <amorphous_core/ScatterSampler.h>

@@ -36,7 +36,7 @@
 // the upper hemisphere contributes light to the surface. See DistantLight::update() for the implementation.
 
 
-#include "DistantLight.h"
+#include <moonray/rendering/pbr/light/DistantLight.h>
 
 #include <moonray/rendering/pbr/core/RayState.h>
 #include <moonray/rendering/pbr/light/DistantLight_ispc_stubs.h>

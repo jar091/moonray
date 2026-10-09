@@ -1,12 +1,12 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "LightSet.h"
+#include <moonray/rendering/pbr/light/LightSet.h>
 
 #include <moonray/rendering/pbr/core//RayState.h>
 #include <moonray/rendering/pbr/core/Util.h>
-#include "Light.h"
-#include "LightUtil.h"
+#include <moonray/rendering/pbr/light/Light.h>
+#include <moonray/rendering/pbr/light/LightUtil.h>
 
 #include <moonray/rendering/pbr/light/LightSet_ispc_stubs.h>
 

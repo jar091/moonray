@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
-#include "PbrTLState.h"
-#include "RayState.h"
+#include <moonray/rendering/pbr/core/PbrTLState.h>
+#include <moonray/rendering/pbr/core/RayState.h>
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>
 #include <scene_rdl2/common/platform/HybridVaryingData.h>
 

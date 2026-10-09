@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "TextureTLState.hh"
+#include <moonray/rendering/texturing/sampler/TextureTLState.hh>
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>
 
 //  OiiO includes for access to texture system.

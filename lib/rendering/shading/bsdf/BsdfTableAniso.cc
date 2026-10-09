@@ -7,7 +7,7 @@
 ///
 
 
-#include "BsdfTableAniso.h"
+#include <moonray/rendering/shading/bsdf/BsdfTableAniso.h>
 #include <moonray/rendering/shading/Util.h>
 
 #include <scene_rdl2/common/except/exceptions.h>

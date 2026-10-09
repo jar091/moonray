@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CountingStream.h"
-#include "Formatters.h"
+#include <moonray/statistics/Formatters.h>
 #include "IOSFlags.h"
 #include "integer_sequence.h"
-#include "StatsTable.h"
+#include <moonray/statistics/StatsTable.h>
 #include "StatsTableOutputInternal.h"
 #include "TableFlags.h"
 #include "Util.h"

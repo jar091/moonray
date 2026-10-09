@@ -1,6 +1,6 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
-#include "RenderOptions.h"
+#include <moonray/rendering/rndr/RenderOptions.h>
 
 #include <moonray/rendering/mcrt_common/AffinityManager.h>
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>

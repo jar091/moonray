@@ -5,7 +5,7 @@
 //
 
 #pragma once
-#include "ThreadLocalState.h"
+#include <moonray/rendering/mcrt_common/ThreadLocalState.h>
 #include <scene_rdl2/render/util/Arena.h>
 #include <scene_rdl2/render/util/SortUtil.h>
 #include <tbb/spin_mutex.h>

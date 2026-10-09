@@ -13,7 +13,7 @@ namespace shading { class Intersection; }
 
 namespace mcrt_common {
     class ThreadLocalState;
-    class Ray;
+    struct Ray;   // struct, not class: MSVC encodes the class-key in the mangled name
 }
 
 namespace geom {

@@ -6,7 +6,7 @@
 
 #include "Aov.hh"
 #include <moonray/rendering/pbr/integrator/BsdfSampler.h>
-#include "RayState.h"
+#include <moonray/rendering/pbr/core/RayState.h>
 
 #include <moonray/rendering/shading/Intersection.h>
 #include <moonray/rendering/shading/State.h>

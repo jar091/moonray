@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "State.h"
+#include <moonray/rendering/shading/State.h>
 #include <moonray/rendering/shading/Intersection.h>
 
 using namespace scene_rdl2;

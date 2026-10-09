@@ -63,3 +63,9 @@ profiling/profiles/
 
 # gha created files
 .ci_githooks
+
+# Windows: /moonray and /include/moonray are self-aliases (git symlinks
+# upstream, NTFS junctions here). Git walks the junction and would otherwise
+# report the entire lib/ tree a second time as untracked.
+/moonray/
+/include/moonray/

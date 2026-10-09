@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "StringPool.h"
+#include <moonray/common/mcrt_util/StringPool.h>
 
 namespace moonray {
 namespace util {

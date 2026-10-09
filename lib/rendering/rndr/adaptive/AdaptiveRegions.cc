@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "AdaptiveRegions.h"
+#include <moonray/rendering/rndr/adaptive/AdaptiveRegions.h>
 #include <moonray/rendering/rndr/RenderDriver.h>
 
 #include <moonray/rendering/mcrt_common/ProfileAccumulatorHandles.h>

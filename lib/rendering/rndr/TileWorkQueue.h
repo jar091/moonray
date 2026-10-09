@@ -4,7 +4,7 @@
 //
 //
 #pragma once
-#include "Types.h"
+#include <moonray/rendering/rndr/Types.h>
 #include <moonray/common/mcrt_util/Atomic.h>
 #include <moonray/rendering/mcrt_common/Types.h> // for MAX_RENDER_PASSES
 #include <scene_rdl2/common/grid_util/Arg.h>

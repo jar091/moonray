@@ -3,25 +3,29 @@
 #include <scene_rdl2/render/util/AtomicFloat.h> // Needs to be included before any OpenImageIO file
 #include <moonray/rendering/pbr/core/Scene.h>
 
-#include "RenderContext.h"
+#include <moonray/rendering/rndr/RenderContext.h>
 
-#include "RenderOutputHelper.h"
-#include "AttributeOverrides.h"
-#include "CheckpointSigIntHandler.h"
-#include "FrameState.h"
-#include "ImageWriteDriver.h"
-#include "PathVisualizerManager.h"
-#include "PixelBufferUtils.h"
-#include "ProcKeeper.h"
-#include "RenderContextConsoleDriver.h"
-#include "RenderDriver.h"
-#include "RenderOptions.h"
-#include "RenderOutputDriver.h"
-#include "RenderOutputHelper.h"
-#include "RenderStatistics.h"
-#include "ResumeHistoryMetaData.h"
-#include "TileScheduler.h"
-#include "Types.h"
+#include <moonray/rendering/rndr/RenderOutputHelper.h>
+#include <moonray/rendering/rndr/AttributeOverrides.h>
+#include <moonray/rendering/rndr/CheckpointSigIntHandler.h>
+#include <moonray/rendering/rndr/FrameState.h>
+#include <moonray/rendering/rndr/ImageWriteDriver.h>
+#include <moonray/rendering/rndr/PathVisualizerManager.h>
+#include <moonray/rendering/rndr/PixelBufferUtils.h>
+#include <moonray/rendering/rndr/ProcKeeper.h>
+#ifdef PLATFORM_LINUX
+// TCP debug console: POSIX sockets + shared memory (see this library's
+// CMakeLists.txt).
+#include <moonray/rendering/rndr/RenderContextConsoleDriver.h>
+#endif
+#include <moonray/rendering/rndr/RenderDriver.h>
+#include <moonray/rendering/rndr/RenderOptions.h>
+#include <moonray/rendering/rndr/RenderOutputDriver.h>
+#include <moonray/rendering/rndr/RenderOutputHelper.h>
+#include <moonray/rendering/rndr/RenderStatistics.h>
+#include <moonray/rendering/rndr/ResumeHistoryMetaData.h>
+#include <moonray/rendering/rndr/TileScheduler.h>
+#include <moonray/rendering/rndr/Types.h>
 
 #include <moonray/common/time/Timer.h>
 #include <moonray/common/geometry/GeometryObjects.h>
@@ -35,6 +39,7 @@
 #include <moonray/rendering/mcrt_common/AffinityManager.h>
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>
 #include <moonray/rendering/pbr/camera/Camera.h>
+#include <moonray/rendering/pbr/camera/DicingCamera.h>
 #include <moonray/rendering/pbr/core/Aov.h>
 #include <moonray/rendering/pbr/core/Statistics.h>
 #include <moonray/rendering/pbr/handlers/ShadeBundleHandler.h>
@@ -68,6 +73,11 @@
 #include <cstdint>
 #ifndef __APPLE__
 #include <malloc.h>
+#endif
+#ifdef _WIN32
+// _heapmin() releases the unused parts of the CRT heap back to the OS, which is
+// what the malloc_trim() calls are here for (accurate process-memory stats).
+#define malloc_trim(x) _heapmin()
 #endif
 #include <memory>
 #include <thread>
@@ -493,6 +503,10 @@ RenderContext::initialize(std::stringstream &initMessages, LoggingConfiguration 
     // Initialize GeometryManager with current SceneContext and Layer
     mGeometryManager.reset(new rt::GeometryManager(mSceneContext.get(),
                                                    *mGeometryManagerOptions));
+    // rendering_rt has no pbr dependency of its own (rendering_pbr links it),
+    // so it declares the dicing-camera math as a callback and we - linking
+    // both - supply the pbr implementation. See rt::DicingCameraFrustumsFn.
+    mGeometryManager->setDicingCameraFrustumsFn(&pbr::computeDicingCameraFrustums);
 
     createPbrScene();
     mHasBeenInit = true;
@@ -515,10 +529,12 @@ RenderContext::initActiveCamera(const scene_rdl2::rdl2::Camera *camera)
 
 RenderContext::~RenderContext()
 {
+#ifdef PLATFORM_LINUX
     if (RenderContextConsoleDriver::get()) {
         // We have to reset RenderContext pointer inside renderContextConsoleDriver
         RenderContextConsoleDriver::get()->setRenderContext(nullptr); // MTsafe
     }
+#endif // end of PLATFORM_LINUX (debug console)
 
     if (mRendering) {
         stopFrame();
@@ -817,6 +833,7 @@ RenderContext::startFrame(const bool simulationMode)
 
     { // renderContext console setup for debug purpose
         int debugConsolePort = vars.get(scene_rdl2::rdl2::SceneVariables::sDebugConsole);
+#ifdef PLATFORM_LINUX
         if (debugConsolePort >= 0) {
             if (!RenderContextConsoleDriver::get()) {
                 RenderContextConsoleDriver::init(debugConsolePort);
@@ -826,6 +843,16 @@ RenderContext::startFrame(const bool simulationMode)
             // Very conservative way of updating RenderContext pointer into renderContextConsoleDriver.
             RenderContextConsoleDriver::get()->setRenderContext(this);
         }
+#else // else of PLATFORM_LINUX
+        if (debugConsolePort >= 0) {
+            // Report the unsupported request instead of ignoring it: the
+            // console needs POSIX sockets/shared memory and is not built on
+            // this platform.
+            scene_rdl2::logging::Logger::warn("debug console (debug_console=",
+                                              debugConsolePort,
+                                              ") is not available on this platform");
+        }
+#endif // end of PLATFORM_LINUX
     }
 
     // Determine if to render this frame in scalar, vectorized, or xpu mode.

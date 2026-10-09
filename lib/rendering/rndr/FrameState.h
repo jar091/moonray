@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Types.h"
+#include <moonray/rendering/rndr/Types.h>
 
 #include <moonray/rendering/pbr/Types.h>
 #include <scene_rdl2/common/fb_util/FbTypes.h>
@@ -61,7 +61,7 @@ struct FrameState : public pbr::FrameState
     int                     mDeepFormat;
     float                   mDeepCurvatureTolerance;
     float                   mDeepZTolerance;
-    uint                    mDeepVolCompressionRes;
+    unsigned int                    mDeepVolCompressionRes;
     std::vector<std::string> *mDeepIDChannelNames;
 
     float mFps; // The desired frames per second for RENDER_MODE_PROGRESSIVE and RENDER_MODE_REALTIME modes.

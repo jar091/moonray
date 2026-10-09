@@ -1,10 +1,11 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "TextureSampler.h"
-#include "TextureTLState.h"
+#include <moonray/rendering/texturing/sampler/TextureSampler.h>
+#include <moonray/rendering/texturing/sampler/TextureTLState.h>
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
-#include <tbb/mutex.h>
+
+#include <mutex>
 
 namespace ispc {
 extern "C" uint32_t TextureTLState_hudValidation(bool);

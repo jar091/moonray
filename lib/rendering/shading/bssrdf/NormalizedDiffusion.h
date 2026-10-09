@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Bssrdf.h"
+#include <moonray/rendering/shading/bssrdf/Bssrdf.h>
 
 #include <moonray/rendering/shading/ispc/bssrdf/NormalizedDiffusion_ispc_stubs.h>
 #include <scene_rdl2/common/math/Color.h>

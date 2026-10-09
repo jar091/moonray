@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "VdbLightFilter.h"
+#include <moonray/rendering/pbr/lightfilter/VdbLightFilter.h>
 
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/rendering/shading/Intersection.h>

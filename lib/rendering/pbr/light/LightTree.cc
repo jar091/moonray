@@ -1,7 +1,7 @@
 // Copyright 2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "LightTree.h"
+#include <moonray/rendering/pbr/light/LightTree.h>
 #include <moonray/rendering/pbr/light/LightTree_ispc_stubs.h>
 
 namespace moonray {
@@ -156,7 +156,10 @@ float LightTree::splitAxis(SplitCandidate& minSplit, int axis, const LightTreeNo
                            float minBound, float range) const
 {
     /// TODO: make this a user parameter
-    int NUM_BUCKETS = 12, numSplits = NUM_BUCKETS - 1;
+    // constexpr so that the arrays below are ordinary fixed-size arrays:
+    // variable-length arrays are a GCC extension
+    constexpr int NUM_BUCKETS = 12;
+    constexpr int numSplits = NUM_BUCKETS - 1;
     float bucketSize = range / NUM_BUCKETS;  // size of each bucket
 
     // create buckets
@@ -396,8 +399,8 @@ void LightTree::printRecurse(uint32_t nodeIndex, int depth) const
         return;
     }
 
-    uint iL = nodeIndex + 1;
-    uint iR = node.getRightNodeIndex();
+    unsigned int iL = nodeIndex + 1;
+    unsigned int iR = node.getRightNodeIndex();
     std::cout << "\n";
 
     printRecurse(iL, depth+1);

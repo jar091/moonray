@@ -17,7 +17,7 @@
 #define GPUAcceleratorType MetalGPUAccelerator
 #endif 
 
-#include "GPUAccelerator.h"
+#include <moonray/rendering/rt/gpu/GPUAccelerator.h>
 
 #ifndef __APPLE__
 // This header must be included in exactly one .cc file for the link to succeed
@@ -120,7 +120,7 @@ GPUAccelerator::instanceIdToInstancePtr(unsigned int instanceId) const
 
 #else // not MOONRAY_USE_OPTIX nor MOONRAY_USE_METAL
 
-#include "GPUAccelerator.h"
+#include <moonray/rendering/rt/gpu/GPUAccelerator.h>
 
 namespace moonray {
 namespace rt {

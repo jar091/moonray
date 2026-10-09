@@ -6,9 +6,9 @@
 #ifndef RENDERCONTEXT_H
 #define RENDERCONTEXT_H
 
-#include "RenderOptions.h"
-#include "RenderPrepExecTracker.h"
-#include "Types.h"
+#include <moonray/rendering/rndr/RenderOptions.h>
+#include <moonray/rendering/rndr/RenderPrepExecTracker.h>
+#include <moonray/rendering/rndr/Types.h>
 
 #include <scene_rdl2/common/fb_util/FbTypes.h>
 #include <scene_rdl2/common/grid_util/Arg.h>
@@ -37,7 +37,7 @@ namespace moonray {
 struct ObjectData;
 
 // Forward declarations.
-namespace geom { class MotionBlurParams; class BakedMesh; class BakedCurves;
+namespace geom { class MotionBlurParams; struct BakedMesh; struct BakedCurves;
 namespace internal { class Statistics; } }
 namespace mcrt_common { class ThreadLocalState; }
 namespace pbr { class CryptomatteBuffer; class DeepBuffer;

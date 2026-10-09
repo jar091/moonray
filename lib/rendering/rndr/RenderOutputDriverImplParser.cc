@@ -3,7 +3,7 @@
 
 //
 //
-#include "RenderOutputDriverImpl.h"
+#include <moonray/rendering/rndr/RenderOutputDriverImpl.h>
 
 #include <scene_rdl2/common/grid_util/Arg.h>
 

@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "Camera.h"
+#include <moonray/rendering/pbr/camera/Camera.h>
 
-#include "LensDistribution.h"
+#include <moonray/rendering/pbr/camera/LensDistribution.h>
 #include <moonray/rendering/pbr/core/Distribution.h>
 
 #include <scene_rdl2/common/math/Mat4.h>

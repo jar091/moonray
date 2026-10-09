@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Cryptomatte.h"
+#include <moonray/rendering/pbr/core/Cryptomatte.h>
 
 #include <moonray/rendering/shading/AttributeKey.h>
 #include <moonray/rendering/shading/Intersection.h>
@@ -141,7 +141,7 @@ void CryptomatteBuffer::addSampleVector(unsigned x, unsigned y, float sampleId, 
                                         bool incrementSamples)
 {
     // Lock in case multiple threads want to add samples to this pixel
-    tbb::mutex::scoped_lock lock(mPixelMutexes[getMutexIdx(x, y)]);
+    std::lock_guard<std::mutex> lock(mPixelMutexes[getMutexIdx(x, y)]);
 
     PixelEntry &pixelEntry = mPixelEntries[CRYPTOMATTE_TYPE_REGULAR][y * mWidth + x];
 

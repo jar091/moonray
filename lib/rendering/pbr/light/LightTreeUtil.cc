@@ -1,4 +1,4 @@
-#include "LightTreeUtil.h"
+#include <moonray/rendering/pbr/light/LightTreeUtil.h>
 
 using namespace scene_rdl2::math;
 

@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Frustum.h"
+#include <moonray/rendering/mcrt_common/Frustum.h>
 
 namespace moonray {
 namespace mcrt_common {

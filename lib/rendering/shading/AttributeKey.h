@@ -9,12 +9,26 @@
 #pragma once
 
 #include <scene_rdl2/scene/rdl2/Types.h>
-#include <tbb/mutex.h>
+#include <mutex>
 #include <unordered_set>
 #include <map>
 
 using scene_rdl2::rdl2::AttributeType;
 using scene_rdl2::rdl2::attributeType;
+
+// DLL-interface macro: CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS exports functions but
+// not data, and AttributeKey's static data members are referenced directly by
+// every shader DSO through the inline insertKey<T>() template.
+// rendering_shading_EXPORTS is defined by CMake while building the DLL itself.
+#if defined(_WIN32)
+  #if defined(rendering_shading_EXPORTS)
+    #define MOONRAY_SHADING_EXPORT __declspec(dllexport)
+  #else
+    #define MOONRAY_SHADING_EXPORT __declspec(dllimport)
+  #endif
+#else
+  #define MOONRAY_SHADING_EXPORT
+#endif
 
 namespace moonray {
 namespace shading {
@@ -43,7 +57,7 @@ enum class Vec3Type
 /// modified by StandardAttributes::init() sometime at startup.
 /// It would be desirable to merge this class with scene_rdl2::rdl2::AttributeKey, as they
 /// serve very similar purposes.
-class AttributeKey
+class MOONRAY_SHADING_EXPORT AttributeKey
 {
  public:
     /// Creates an invalid AttributeKey. In general, this should
@@ -93,7 +107,7 @@ protected:
     static finline bool hasDerivatives(AttributeKey key);
 
 private:
-    static tbb::mutex sRegisterMutex;
+    static std::mutex sRegisterMutex;
     static std::vector<std::string> sKeyNames;
     static std::vector<AttributeType> sKeyTypes;
     static std::vector<size_t> sKeySizes;
@@ -128,7 +142,7 @@ typedef std::pair<TypedAttributeKey<scene_rdl2::math::Vec3f>, Vec3Type> Vec3KeyT
 /// (with a corresponding change to init()).
 /// This list of keys is initialized in init() and init() should be
 /// called before using any of these keys.
-class StandardAttributes
+class MOONRAY_SHADING_EXPORT StandardAttributes
 {
 public:
     // Initializes the standard attributes. This function should
@@ -283,7 +297,7 @@ AttributeKey::requestDerivatives() const
         return false;
     }
     {
-        tbb::mutex::scoped_lock lock(sRegisterMutex);
+        std::lock_guard<std::mutex> lock(sRegisterMutex);
         sHasDerivatives[mIndex] = 1;
     }
     return true;
@@ -316,7 +330,7 @@ AttributeKey::insertKey(const std::string &name, bool requestDerivatives)
     std::pair<std::string, AttributeType> lookup(name, type);
     int index = -1;
     {
-        tbb::mutex::scoped_lock lock(sRegisterMutex);
+        std::lock_guard<std::mutex> lock(sRegisterMutex);
         auto it = sTable.find(lookup);
         if (it == sTable.end()) {
             index = static_cast<int>(sKeyNames.size());

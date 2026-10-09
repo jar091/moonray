@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Curves.h"
+#include <moonray/rendering/geom/Curves.h>
 
 #include <moonray/rendering/geom/ProceduralContext.h>
 #include <moonray/rendering/geom/PrimitiveVisitor.h>

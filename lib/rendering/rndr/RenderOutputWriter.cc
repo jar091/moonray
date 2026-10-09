@@ -1,10 +1,10 @@
 // Copyright 2023-2025 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "ExrUtils.h"
-#include "ImageWriteDriver.h"
-#include "RenderOutputDriverImpl.h"
-#include "RenderOutputWriter.h"
+#include <moonray/rendering/rndr/ExrUtils.h>
+#include <moonray/rendering/rndr/ImageWriteDriver.h>
+#include <moonray/rendering/rndr/RenderOutputDriverImpl.h>
+#include <moonray/rendering/rndr/RenderOutputWriter.h>
 
 #include <moonray/rendering/mcrt_common/Clock.h>
 #include <moonray/rendering/pbr/core/Cryptomatte.h>
@@ -12,6 +12,10 @@
 #include <scene_rdl2/common/grid_util/Sha1Util.h>
 #include <scene_rdl2/render/util/StrUtil.h>
 #include <scene_rdl2/render/util/Strings.h>
+
+#if defined(_MSC_VER)
+#include <immintrin.h>          // F16C: _mm_cvtph_ps / _mm_cvtps_ph (see htof/ftoh)
+#endif
 
 // Useful runtime verify for single float to half float conversion for ImageWriteCache
 //#define RUNTIME_VERIFY_FTOH
@@ -1572,6 +1576,10 @@ RenderOutputWriter::htof(const unsigned short h)
 	float output;
 	vst1q_f32(&output, vcvt_f32_f16(vld1_u16(&h)));
 	return output;
+#elif defined(_MSC_VER)
+    // _cvtsh_ss is the GCC/ICC spelling of the scalar F16C conversion; MSVC only
+    // provides the vector form of the same VCVTPH2PS instruction.
+    return _mm_cvtss_f32(_mm_cvtph_ps(_mm_cvtsi32_si128(static_cast<int>(h))));
 #else
     return _cvtsh_ss(h); // Convert half 16bit float to full 32bit float
 #endif
@@ -1587,6 +1595,10 @@ RenderOutputWriter::ftoh(const float f)
 	__fp16 output;
 	vst1_f16(&output, vcvt_f16_f32(vld1q_f32(&f)));
 	return output;
+#elif defined(_MSC_VER)
+    // Same for _cvtss_sh / VCVTPS2PH. 0 = round to nearest even, as below.
+    return static_cast<unsigned short>(
+        _mm_cvtsi128_si32(_mm_cvtps_ph(_mm_set_ss(f), 0)) & 0xffff);
 #else
     return _cvtss_sh(f, 0); // Convert full 32bit float to half 16bit float
                             // An immediate value controlling rounding using bits : 0=Nearest 

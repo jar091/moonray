@@ -5,7 +5,7 @@
 /// @file RampControlImpl.cc
 ///
 
-#include "RampControl.h"
+#include <moonray/rendering/shading/RampControl.h>
 
 #include <scene_rdl2/common/math/Color.h>
 #include <scene_rdl2/common/math/ColorSpace.h>

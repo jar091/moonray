@@ -9,6 +9,13 @@
 #include <moonray/common/mcrt_util/Average.h>
 #include <scene_rdl2/render/logging/logging.h>
 
+#include <new>
+#if defined(_WIN32)
+#include <malloc.h>   // _aligned_malloc, _aligned_free
+#else
+#include <stdlib.h>   // posix_memalign
+#endif
+
 namespace moonray {
 namespace shading {
 
@@ -29,9 +36,18 @@ class CACHE_ALIGN ThreadLocalObjectState
     static ThreadLocalObjectState *alignedAlloc(int num)
     {
         void *memptr;
+#if defined(_WIN32)
+        // The UCRT has no posix_memalign(); _aligned_malloc() memory must be
+        // released with _aligned_free() (see deallocate() below).
+        memptr = _aligned_malloc(sizeof(ThreadLocalObjectState)*num, 64);
+        if (memptr == nullptr) {
+            throw std::bad_alloc();
+        }
+#else
         if (auto err = posix_memalign(&memptr, 64, sizeof(ThreadLocalObjectState)*num)) {
             throw std::bad_alloc();
         }
+#endif
         ThreadLocalObjectState *result = static_cast<ThreadLocalObjectState *>(memptr);
         {
             for (int i = 0; i < num; i++) {
@@ -47,7 +63,11 @@ class CACHE_ALIGN ThreadLocalObjectState
         for (int i = 0; i < num; i++) {
             tlos[i].~ThreadLocalObjectState();
         }
+#if defined(_WIN32)
+        _aligned_free(tlos);
+#else
         free(tlos);
+#endif
     }
 
     moonray::util::InclusiveExclusiveAverage<int64> mShaderCallStat;

@@ -9,7 +9,7 @@
 #ifndef AMORPHOUSVOLUME_H
 #define AMORPHOUSVOLUME_H
 
-#include "VdbVolume.h"
+#include <moonray/rendering/geom/VdbVolume.h>
 
 #include <moonray/rendering/shading/PrimitiveAttribute.h>
 #include <moonray/rendering/shading/Xform.h>

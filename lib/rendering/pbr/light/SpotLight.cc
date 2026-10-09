@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "SpotLight.h"
+#include <moonray/rendering/pbr/light/SpotLight.h>
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/rendering/pbr/core/Distribution.h>
 #include <moonray/rendering/pbr/core/RayState.h>

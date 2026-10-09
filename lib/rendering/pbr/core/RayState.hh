@@ -119,10 +119,35 @@
 
 //----------------------------------------------------------------------------
 
+// This trailing pad exists only in the flat ISPC struct: it makes it as large
+// as the C++ object, which is CACHE_ALIGN(64) and therefore rounds up past its
+// last member. mParentLobeLightSets (68 bytes) ends at 676 on the Itanium ABI,
+// so 28 bytes bring the ISPC struct to the 704 that C++ rounds up to.
+//
+// On MSVC mRay (mcrt_common::RayDifferential) is 16 bytes larger - MSVC does
+// not pack a derived class's first member into the base class's tail padding,
+// see Ray.hh - so every member after mRay sits 16 bytes further along and
+// mParentLobeLightSets ends at 692 instead of 676. The C++ object is still
+// exactly 704 bytes, because those 16 bytes come out of the same 64-byte
+// alignment round-up; only the ISPC struct, which has no alignment attribute
+// and gets its size from the members alone, needs its explicit pad shortened
+// by the same 16 bytes. RayState therefore does not grow on Windows.
+// PLATFORM_WINDOWS rather than _MSC_VER: ISPC has to derive the same layout
+// and only sees the -D definitions (same reasoning as Aov.hh and Ray.hh).
+#if defined(PLATFORM_WINDOWS)
+// CACHE_LINE_SIZE == 128 is Apple/ARM only, so this branch is currently
+// unreachable; the value is the Itanium one minus the same 16 bytes.
+#if CACHE_LINE_SIZE == 128
+#define RAY_STATE_MEMBERS_PAD   60
+#else
+#define RAY_STATE_MEMBERS_PAD   12
+#endif
+#else
 #if CACHE_LINE_SIZE == 128
 #define RAY_STATE_MEMBERS_PAD   76
 #else
 #define RAY_STATE_MEMBERS_PAD   28
+#endif
 #endif
 
 #define RAY_STATE_MEMBERS                                                   \

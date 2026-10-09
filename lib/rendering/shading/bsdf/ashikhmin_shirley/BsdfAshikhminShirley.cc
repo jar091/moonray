@@ -7,7 +7,7 @@
 ///
 
 
-#include "BsdfAshikhminShirley.h"
+#include <moonray/rendering/shading/bsdf/ashikhmin_shirley/BsdfAshikhminShirley.h>
 
 #include <moonray/rendering/shading/Util.h>
 #include <scene_rdl2/common/platform/IspcUtil.h>

@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Box.h"
+#include <moonray/rendering/geom/Box.h>
 
 #include <moonray/rendering/geom/PrimitiveVisitor.h>
 

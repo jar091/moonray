@@ -3,7 +3,7 @@
 
 
 #pragma once
-#include "Light.h"
+#include <moonray/rendering/pbr/light/Light.h>
 
 #include <scene_rdl2/scene/rdl2/rdl2.h>
 #include <embree4/rtcore.h>

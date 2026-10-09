@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "PortalLight.h"
+#include <moonray/rendering/pbr/light/PortalLight.h>
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/rendering/pbr/core/Util.h>
 #include <moonray/rendering/pbr/light/PortalLight_ispc_stubs.h>

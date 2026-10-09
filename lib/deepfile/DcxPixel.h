@@ -10,7 +10,7 @@
 //
 //=============================================================================
 
-#include "DcxChannelSet.h"
+#include <moonray/deepfile/DcxChannelSet.h>
 
 #ifdef __ICC
 // disable icc remark #1572: 'floating-point equality and inequality comparisons are unreliable'
@@ -55,8 +55,13 @@ OPENDCX_INTERNAL_NAMESPACE_HEADER_ENTER
 //
 //-------------------------------------------------------------------------------------
 
+// No DCX_EXPORT: this is a class template whose members are all defined inline
+// below, so every translation unit instantiates it for itself and there is
+// nothing to import from - or export out of - the DLL. Annotating it makes
+// MSVC reject each of those inline definitions (C2491), and on ELF/Mach-O the
+// macro is empty anyway.
 template <class T>
-class DCX_EXPORT Pixel
+class Pixel
 {
   public:
     ChannelSet  channels;                   // Set of enabled channels

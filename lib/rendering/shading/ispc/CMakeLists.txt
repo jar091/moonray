@@ -17,7 +17,18 @@ set(exportGroup ${PROJECT_NAME}Targets)
 # as part of rendering_shading lib, ( I guess )
 # -------------------------------------------------------------------
 
-add_library(shading_eval_ispc SHARED "")
+if(IsWindowsPlatform)
+    # This library's ISPC code calls back into C++ that lives in
+    # rendering_shading (CPP_oiioTexture, CPP_oiioUdimTexture, CPP_logEvent),
+    # while rendering_shading links this library: a dependency cycle that ELF
+    # resolves at load time and Darwin papers over with
+    # "-undefined dynamic_lookup" (see below). A Windows DLL cannot be linked
+    # with unresolved symbols at all, so on Windows the ISPC objects become a
+    # static library that is folded into rendering_shading.dll instead.
+    add_library(shading_eval_ispc STATIC "")
+else()
+    add_library(shading_eval_ispc SHARED "")
+endif()
 add_library(${PROJECT_NAME}::shading_eval_ispc ALIAS shading_eval_ispc)
 
 # If we don't request the C++ linker, cmake-3.21 will complain about
@@ -39,6 +50,17 @@ target_sources(shading_eval_ispc
         UdimTexture.ispc
         Xform.ispc
 )
+
+if(IsWindowsPlatform)
+    # A DLL built purely from ISPC objects has no MSVC-compiled TU, so the
+    # default CRT libraries never get pulled in (_fltused, __chkstk, the stdio
+    # entry points ISPC's print() uses). One empty C++ file fixes the link.
+    # Same fix as scene_rdl2's math_ispc/fb_util_ispc.
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/shading_eval_ispc_crt_anchor.cpp
+        "// anchor TU so MSVC defaultlib directives pull in the CRT\n")
+    target_sources(shading_eval_ispc PRIVATE
+        ${CMAKE_CURRENT_BINARY_DIR}/shading_eval_ispc_crt_anchor.cpp)
+endif()
 
 set_property(TARGET shading_eval_ispc
     PROPERTY PUBLIC_HEADER
@@ -68,7 +90,7 @@ set_property(TARGET shading_eval_ispc
 file(RELATIVE_PATH relBinDir ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 set_target_properties(shading_eval_ispc PROPERTIES
     ISPC_HEADER_SUFFIX _ispc_stubs.h
-    ISPC_HEADER_DIRECTORY /${relBinDir}
+    ISPC_HEADER_DIRECTORY ${GLOBAL_ISPC_HEADER_DIR_PREFIX}${relBinDir}
     ISPC_INSTRUCTION_SETS ${GLOBAL_ISPC_INSTRUCTION_SETS}
     # If we don't request the C++ linker, cmake will complain about
     # a missing variable CMAKE_ISPC_CREATE_SHARED_LIBRARY. This seems
@@ -135,8 +157,22 @@ install(TARGETS shading_eval_ispc
 # =====================================================================================
 # shading_ispc: component that shaders depend on to define shaders
 # =====================================================================================
-add_library(shading_ispc SHARED "")
+if(IsWindowsPlatform)
+    # Same dependency cycle as shading_eval_ispc above (CPP_logEvent,
+    # Bsdfv_setPostScatterExtraAovs live in rendering_shading).
+    add_library(shading_ispc STATIC "")
+else()
+    add_library(shading_ispc SHARED "")
+endif()
 add_library(${PROJECT_NAME}::shading_ispc ALIAS shading_ispc)
+
+if(IsWindowsPlatform)
+    # See the shading_eval_ispc anchor above.
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/shading_ispc_crt_anchor.cpp
+        "// anchor TU so MSVC defaultlib directives pull in the CRT\n")
+    target_sources(shading_ispc PRIVATE
+        ${CMAKE_CURRENT_BINARY_DIR}/shading_ispc_crt_anchor.cpp)
+endif()
 
 # ----------------------------------------
 # We'd like the *_ispc_stubs.h files to be placed into the build
@@ -219,7 +255,7 @@ function(make_ispc_target target sources stubsDestination)
 
     set_target_properties(${target} PROPERTIES
         ISPC_HEADER_SUFFIX _ispc_stubs.h
-        ISPC_HEADER_DIRECTORY /${relBinDir}/${stubsDestination}
+        ISPC_HEADER_DIRECTORY ${GLOBAL_ISPC_HEADER_DIR_PREFIX}${relBinDir}/${stubsDestination}
         ISPC_INSTRUCTION_SETS ${GLOBAL_ISPC_INSTRUCTION_SETS}
     )
 
@@ -303,7 +339,7 @@ target_sources(eval_attribute_debug_hack_ispc PRIVATE EvalAttributeDebugHack.isp
 
 set_target_properties(eval_attribute_debug_hack_ispc PROPERTIES
     ISPC_HEADER_SUFFIX _ispc_stubs.h
-    ISPC_HEADER_DIRECTORY /${relBinDir}
+    ISPC_HEADER_DIRECTORY ${GLOBAL_ISPC_HEADER_DIR_PREFIX}${relBinDir}
     ISPC_INSTRUCTION_SETS ${GLOBAL_ISPC_INSTRUCTION_SETS}
 )
 

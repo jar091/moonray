@@ -9,8 +9,10 @@
 #include <scene_rdl2/render/logging/logging.h>
 #include <scene_rdl2/render/util/Files.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
+#include <thread>
 
 using scene_rdl2::logging::Logger;
 
@@ -57,7 +59,7 @@ RaasCommandLineApplication::render(rndr::RenderContext & renderContext)
 
     while (!renderContext.isFrameComplete()) {
         // Poll for completion every 100 ms.
-        usleep(100000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100000));
         // TODO: Do we want a 'verbosity' setting.  Maybe we don't want to print status always
         printStatusLine(renderContext, driver->getLastFrameMcrtStartTime(), false);
     }

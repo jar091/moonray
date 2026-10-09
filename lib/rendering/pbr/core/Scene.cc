@@ -6,9 +6,9 @@
 /// $Id$
 ///
 
-#include "PbrTLState.h"
-#include "Scene.h"
-#include "Util.h"
+#include <moonray/rendering/pbr/core/PbrTLState.h>
+#include <moonray/rendering/pbr/core/Scene.h>
+#include <moonray/rendering/pbr/core/Util.h>
 #include <moonray/common/time/Timer.h>
 #include <moonray/rendering/pbr/camera/BakeCamera.h>
 #include <moonray/rendering/pbr/camera/Camera.h>

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "Array8.h"
-#include "PixelScramble.h"
+#include <moonray/rendering/pbr/sampler/Array8.h>
+#include <moonray/rendering/pbr/sampler/PixelScramble.h>
 
 namespace moonray {
 namespace pbr {

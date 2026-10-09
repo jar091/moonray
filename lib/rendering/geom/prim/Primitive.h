@@ -50,7 +50,7 @@ struct Fishtum;
 
 namespace geom {
 
-struct MotionBlurParams;
+class MotionBlurParams;   // class, not struct: MSVC encodes the class-key in the mangled name
 
 namespace internal {
 

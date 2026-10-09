@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "Camera.h"
+#include <moonray/rendering/pbr/camera/Camera.h>
 
 #include <moonray/rendering/texturing/sampler/TextureSampler.h>
 

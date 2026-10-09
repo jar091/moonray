@@ -5,7 +5,7 @@
 /// @file BezierSpanChains.cc
 ///
 
-#include "BezierSpanChains.h"
+#include <moonray/rendering/geom/prim/BezierSpanChains.h>
 
 #include <moonray/rendering/geom/prim/BVHUserData.h>
 #include <moonray/rendering/geom/prim/Instance.h>

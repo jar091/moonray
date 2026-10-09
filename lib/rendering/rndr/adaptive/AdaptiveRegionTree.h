@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ActivePixelMask.h"
+#include <moonray/rendering/rndr/adaptive/ActivePixelMask.h>
 #include <moonray/common/mcrt_util/Atomic.h>
 
 #include <scene_rdl2/common/fb_util/FbTypes.h>

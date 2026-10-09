@@ -7,7 +7,7 @@
 ///
 
 
-#include "BsdfSlice.h"
+#include <moonray/rendering/shading/bsdf/BsdfSlice.h>
 
 #include <scene_rdl2/common/math/Constants.h>
 #include <scene_rdl2/scene/rdl2/SceneVariables.h>

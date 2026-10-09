@@ -19,7 +19,7 @@ target_sources(${objLib}
 file(RELATIVE_PATH relBinDir ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 set_target_properties(${objLib} PROPERTIES
     ISPC_HEADER_SUFFIX _ispc_stubs.h
-    ISPC_HEADER_DIRECTORY /${relBinDir}
+    ISPC_HEADER_DIRECTORY ${GLOBAL_ISPC_HEADER_DIR_PREFIX}${relBinDir}
     ISPC_INSTRUCTION_SETS ${GLOBAL_ISPC_INSTRUCTION_SETS}
     LINKER_LANGUAGE CXX
 )
@@ -63,7 +63,8 @@ target_include_directories(${target}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 
-if (NOT IsDarwinPlatform)
+# libatomic is a GCC runtime library: neither Darwin nor MSVC has it.
+if (IsLinuxPlatform)
     set(PlatformSpecificLibs atomic)
 endif()
 

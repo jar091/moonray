@@ -10,9 +10,9 @@
 
 #include "PathIntegrator.hh"
 
-#include "BsdfOneSampler.h"
-#include "BsdfSampler.h"
-#include "LightSetSampler.h"
+#include <moonray/rendering/pbr/integrator/BsdfOneSampler.h>
+#include <moonray/rendering/pbr/integrator/BsdfSampler.h>
+#include <moonray/rendering/pbr/integrator/LightSetSampler.h>
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/rendering/shading/Intersection.h>
 #include <moonray/rendering/geom/prim/Primitive.h>
@@ -41,7 +41,7 @@ class VolumeRegions;
 }
 
 namespace mcrt_common {
-class Ray;
+struct Ray;   // struct, not class: MSVC encodes the class-key in the mangled name
 class RayDifferential;
 }
 

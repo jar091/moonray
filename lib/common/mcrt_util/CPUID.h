@@ -8,11 +8,14 @@
 #include <array>
 #include <atomic>
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <mutex>
+#include <string>
+#include <tuple>
 #include <type_traits>
 
-#if defined(__WIN32__)
+#if defined(_WIN32)
 #include <intrin.h>
 #else
 #include <cpuid.h>
@@ -20,6 +23,20 @@
 
 #pragma warning push
 #pragma warning(disable:1711) // Assignment to static variable
+
+// DLL-interface macro: CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS exports functions but
+// not data, and CPUID's static data members are filled in by CPUID.cc yet read
+// through this header's inline accessors from other libraries.
+// common_mcrt_util_EXPORTS is defined by CMake while building the DLL itself.
+#if defined(_WIN32)
+  #if defined(common_mcrt_util_EXPORTS)
+    #define MOONRAY_MCRT_UTIL_EXPORT __declspec(dllexport)
+  #else
+    #define MOONRAY_MCRT_UTIL_EXPORT __declspec(dllimport)
+  #endif
+#else
+  #define MOONRAY_MCRT_UTIL_EXPORT
+#endif
 
 namespace moonray {
 namespace util {
@@ -84,6 +101,98 @@ bool is_set(CPUFeatures collection, CPUFeatures individual) noexcept
     return (collection & individual) == individual;
 }
 
+} // namespace cpuid_detail
+
+#if defined(_WIN32)
+// MSVC ships no <cpuid.h>. Reimplement the two GCC helpers on top of the
+// __cpuid/__cpuidex intrinsics from <intrin.h> with identical semantics:
+//   __get_cpuid_max(ext, sig) executes leaf _ext_ (0 for the basic leaves,
+//     0x80000000 for the extended ones), stores EBX in *sig when sig is not
+//     null, and returns EAX -- the highest supported leaf of that range.
+//   __get_cpuid[_count]() return 0 and leave the output registers untouched
+//     when the requested leaf is above that maximum, 1 otherwise.
+// Getting the maximum-leaf test wrong would silently mis-detect CPU features
+// (CPUID returns the highest supported leaf's data for out-of-range leaves on
+// Intel, and zeros on AMD), so the check is kept exactly as GCC has it.
+// CPUID itself always exists on x86-64, so the 32-bit EFLAGS probe GCC does is
+// not needed.
+inline unsigned int
+__get_cpuid_max(unsigned int ext, unsigned int* sig) noexcept
+{
+    int regs[4];
+    __cpuid(regs, static_cast<int>(ext));
+    if (sig) {
+        *sig = static_cast<unsigned int>(regs[1]);
+    }
+    return static_cast<unsigned int>(regs[0]);
+}
+
+inline int
+__get_cpuid_count(unsigned int leaf, unsigned int subleaf,
+                  unsigned int* eax, unsigned int* ebx,
+                  unsigned int* ecx, unsigned int* edx) noexcept
+{
+    const unsigned int maxLeaf = __get_cpuid_max(leaf & 0x80000000U, nullptr);
+    if (maxLeaf == 0U || maxLeaf < leaf) {
+        return 0;
+    }
+    int regs[4];
+    __cpuidex(regs, static_cast<int>(leaf), static_cast<int>(subleaf));
+    *eax = static_cast<unsigned int>(regs[0]);
+    *ebx = static_cast<unsigned int>(regs[1]);
+    *ecx = static_cast<unsigned int>(regs[2]);
+    *edx = static_cast<unsigned int>(regs[3]);
+    return 1;
+}
+
+inline int
+__get_cpuid(unsigned int leaf,
+            unsigned int* eax, unsigned int* ebx,
+            unsigned int* ecx, unsigned int* edx) noexcept
+{
+    // MSVC's __cpuid(regs, leaf) is __cpuidex(regs, leaf, 0); the subleaf is
+    // ignored by every leaf this header queries through __get_cpuid().
+    return __get_cpuid_count(leaf, 0U, eax, ebx, ecx, edx);
+}
+
+// The feature bit masks below are the same values <cpuid.h> defines.
+#define bit_SSE        0x02000000   // leaf 1, EDX
+#define bit_SSE2       0x04000000   // leaf 1, EDX
+#define bit_SSE3       0x00000001   // leaf 1, ECX
+#define bit_SSSE3      0x00000200   // leaf 1, ECX
+#define bit_SSE4_1     0x00080000   // leaf 1, ECX
+#define bit_SSE4_2     0x00100000   // leaf 1, ECX
+#define bit_POPCNT     0x00800000   // leaf 1, ECX
+#define bit_AVX        0x10000000   // leaf 1, ECX
+#define bit_F16C       0x20000000   // leaf 1, ECX
+#define bit_RDRND      0x40000000   // leaf 1, ECX
+#define bit_LZCNT      0x00000020   // leaf 0x80000001, ECX (== bit_ABM)
+#define bit_FMA4       0x00010000   // leaf 0x80000001, ECX
+#define bit_BMI        0x00000008   // leaf 7/0, EBX
+#define bit_AVX2       0x00000020   // leaf 7/0, EBX
+#define bit_BMI2       0x00000100   // leaf 7/0, EBX
+#define bit_AVX512F    0x00010000   // leaf 7/0, EBX
+#define bit_AVX512DQ   0x00020000   // leaf 7/0, EBX
+#define bit_AVX512IFMA 0x00200000   // leaf 7/0, EBX
+#define bit_AVX512PF   0x04000000   // leaf 7/0, EBX
+#define bit_AVX512ER   0x08000000   // leaf 7/0, EBX
+#define bit_AVX512CD   0x10000000   // leaf 7/0, EBX
+#define bit_AVX512BW   0x40000000   // leaf 7/0, EBX
+#define bit_AVX512VL   0x80000000   // leaf 7/0, EBX
+#define bit_AVX512VBMI 0x00000002   // leaf 7/0, ECX
+#endif // _WIN32
+
+namespace cpuid_detail
+{
+#if defined(_WIN32)
+// MSVC has no 128-bit integer type; a 16-byte trivially copyable struct picks
+// the std::atomic specialization of the same width. Note that it is NOT
+// lock-free there - see check_atomic() below.
+struct UInt128Storage { std::uint64_t lo; std::uint64_t hi; };
+using uint128_type = UInt128Storage;
+#else
+using uint128_type = __uint128_t;
+#endif
 } // namespace cpuid_detail
 
 class CPUID
@@ -175,12 +284,36 @@ private:
         return r;
     }
 
+#if defined(_WIN32)
+    // CMPXCHG16B: CPUID leaf 1, ECX bit 13.
+    static bool has_cmpxchg16b()
+    {
+        std::array<unsigned, 4> regs = { 0U, 0U, 0U, 0U };
+        __get_cpuid(0x00000001U, &regs[0], &regs[1], &regs[2], &regs[3]);
+        return (regs[2 /*ECX*/] & (1U << 13)) != 0U;
+    }
+#endif
+
     template<std::size_t size>
     static bool check_atomic()
     {
         constexpr std::size_t index = log2(size) - 3ULL;// We start at 8 == 2^3
-        using Tuple = std::tuple<std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t, __uint128_t>;
+        using Tuple = std::tuple<std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t,
+                                 cpuid_detail::uint128_type>;
         using Type = std::tuple_element_t<index, Tuple>;
+#if defined(_WIN32)
+        // MSVC's std::atomic<16-byte object> is NOT lock-free: the
+        // specialization is 24 bytes with a spinlock in front of the value, so
+        // is_lock_free() is false on every x64 CPU and this row reported
+        // "Atomic 128 bit support = 0" even where cmpxchg16b exists. The row
+        // sits in the *hardware* table, and what actually performs 16-byte
+        // atomics here is Atomic.h's _InterlockedCompareExchange128 branch
+        // (which emits `lock cmpxchg16b` and does not use std::atomic at all),
+        // so ask the CPU rather than the standard library.
+        if constexpr (size == 128) {
+            return has_cmpxchg16b();
+        }
+#endif
         return std::atomic<Type>{}.is_lock_free();
     }
 
@@ -283,9 +416,9 @@ private:
         bool a128 : 1;
     };
 
-    static std::string s_vendor;
-    static AtomicSize s_atomic_sizes;
-    static cpuid_detail::CPUFeatures s_features;
+    static MOONRAY_MCRT_UTIL_EXPORT std::string s_vendor;
+    static MOONRAY_MCRT_UTIL_EXPORT AtomicSize s_atomic_sizes;
+    static MOONRAY_MCRT_UTIL_EXPORT cpuid_detail::CPUFeatures s_features;
 };
 
 } // namespace util

@@ -4,10 +4,10 @@
 //
 //
 
-#include "DisplayFilterDriver.h"
+#include <moonray/rendering/rndr/DisplayFilterDriver.h>
 
-#include "Film.h"
-#include "RenderOutputDriver.h"
+#include <moonray/rendering/rndr/Film.h>
+#include <moonray/rendering/rndr/RenderOutputDriver.h>
 
 #include <moonray/rendering/displayfilter/DisplayFilter.h>
 #include <moonray/rendering/displayfilter/InputBuffer.h>

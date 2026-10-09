@@ -32,6 +32,22 @@ if(MOONRAY_USE_OPTIX)
             --use_fast_math
     )
 
+    # The .cu includes moonray headers (GPURay.h), so it needs the same
+    # include roots the C++ sources get - the CUDA object library inherits
+    # nothing from the component target. Only the `include/` alias is given:
+    # adding the source root as well would let the same header be reached
+    # under two spellings, and nvcc's `#pragma once` does not recognise them
+    # as the same file ("class GPURay has already been defined").
+    target_include_directories(${optixLib}
+        PRIVATE
+            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+            $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+    )
+
+    # MSVC's math.h only defines M_PI with _USE_MATH_DEFINES, and the device
+    # code uses it.
+    target_compile_definitions(${optixLib} PRIVATE _USE_MATH_DEFINES)
+
     target_link_libraries(${optixLib}
         PUBLIC
             OptiX::OptiX
@@ -136,14 +152,16 @@ target_link_libraries(${component}
         TBB::tbb
 )
 
-if (IsDarwinPlatform)
-    # Undefined symbols for architecture arm64:
-    #   "moonray::pbr::ImageDistribution::~ImageDistribution()"
-    #   "moonray::pbr::PerspectiveCamera::PerspectiveCamera(scene_rdl2::rdl2::Camera const*)"
-    #   "moonray::pbr::Camera::update(scene_rdl2::math::Mat4<scene_rdl2::math::Vec4<double>> const&)"
-    #   "vtable for moonray::pbr::ProjectiveCamera"
-    set_target_properties(${component} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif()
+# NOTE: this target used to need "-undefined dynamic_lookup" on Darwin for
+#   "moonray::pbr::ImageDistribution::~ImageDistribution()"
+#   "moonray::pbr::PerspectiveCamera::PerspectiveCamera(scene_rdl2::rdl2::Camera const*)"
+#   "moonray::pbr::Camera::update(scene_rdl2::math::Mat4<scene_rdl2::math::Vec4<double>> const&)"
+#   "vtable for moonray::pbr::ProjectiveCamera"
+# i.e. for the rendering_rt <-> rendering_pbr cycle created by the dicing
+# camera in GeometryManager.cc. That code is now inverted through
+# rt::DicingCameraFrustumsFn (implemented by pbr::computeDicingCameraFrustums,
+# installed by rendering_rndr), so this library references no pbr symbol and
+# the workaround is gone.
 
 if(MOONRAY_USE_OPTIX)
     target_link_libraries(${component}

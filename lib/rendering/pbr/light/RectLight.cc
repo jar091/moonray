@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "RectLight.h"
+#include <moonray/rendering/pbr/light/RectLight.h>
 #include <moonray/rendering/pbr/core/Distribution.h>
 #include <moonray/rendering/pbr/core/RayState.h>
 #include <moonray/rendering/pbr/core/Util.h>

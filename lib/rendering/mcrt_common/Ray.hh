@@ -85,19 +85,50 @@
                                          /* macOS: 252 * 4 lanes = 1008  */\
                                          /* linux: 252 * 8 lanes = 2016  */\
 
+// The trailing pad only exists when it has a size. A zero-length array is a
+// GCC/clang extension: MSVC rejects one whenever the containing class is not
+// itself the last member of something (C2229), which RayDifferential never is
+// - it is the first member of pbr::RayState. Emitting nothing instead of a
+// zero-length array is layout-identical on every platform and in ISPC.
 #if CACHE_LINE_SIZE == 128
 #define MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_CACHE_PAD   (4)
+#define MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_PAD1                               \
+    ; HVD_ARRAY(uint32_t, pad1, MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_CACHE_PAD)
 #else
 #define MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_CACHE_PAD   0
+#define MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_PAD1
 #endif
 
-#define MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS                                    /*   size   macOS */\
+// Base-class tail padding. Ray's members end at 252 but Ray is ALIGN(16), so
+// sizeof(Ray) == 256. The Itanium ABI lets a derived class put its first
+// member into that 4-byte tail gap (mOriginX at 252, which the size column
+// below records); MSVC never reuses base-class tail padding and starts
+// RayDifferential's own members at 256, which also pushes sizeof() from 304
+// to 320. Both gaps exist in the C++ object either way - they only have to be
+// spelled out for ISPC, whose struct is flat and cannot infer them. Hence
+// HVD_ISPC_PAD (a no-op in the C++ expansion) rather than real members, which
+// would change the layout on every platform.
+// PLATFORM_WINDOWS rather than _MSC_VER: ISPC has to derive the same layout
+// and only sees the -D definitions (same reasoning as Aov.hh).
+#if defined(PLATFORM_WINDOWS)
+#define MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_BASE_TAIL_PAD                      \
+    HVD_ISPC_PAD(mBaseTailPad, 4);
+#define MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_TRAILING_PAD                       \
+    ; HVD_ISPC_PAD(mTrailingPad, 12)
+#else
+#define MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_BASE_TAIL_PAD
+#define MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_TRAILING_PAD
+#endif
+
+#define MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS                     /*   size   macOS   win */\
+    MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_BASE_TAIL_PAD                          /*    256  */\
     HVD_MEMBER(HVD_NAMESPACE(scene_rdl2::math, Vec3f), mOriginX);               /*    264    264  */\
     HVD_MEMBER(HVD_NAMESPACE(scene_rdl2::math, Vec3f), mDirX);                  /*    276    276  */\
     HVD_MEMBER(HVD_NAMESPACE(scene_rdl2::math, Vec3f), mOriginY);               /*    288    288  */\
     HVD_MEMBER(HVD_NAMESPACE(scene_rdl2::math, Vec3f), mDirY);                  /*    300    300  */\
-    HVD_MEMBER(float, mOrigTfar);                                               /*    304    304  */\
-    HVD_ARRAY(uint32_t, pad1, MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_CACHE_PAD)   /*    304    320  */\
+    HVD_MEMBER(float, mOrigTfar)                                                /*    304    304    308 */\
+    MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_TRAILING_PAD                           /*                   320 */\
+    MCRT_COMMON_RAY_DIFFERENTIAL_MEMBERS_PAD1                                   /*    304    320  */\
                                                                   /* macOS: 320 * 4 lanes = 1280  */\
                                                                   /* linux: 304 * 8 lanes = 2432  */\
 

@@ -12,11 +12,43 @@
 #include <istream>
 #include <stdexcept>
 #include <streambuf>
+#include <string>
 #include <vector>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <scene_rdl2/common/platform/Platform.h> // ssize_t
+// scene_rdl2's common/platform/DebugLog.h (reached through Platform.h above)
+// #undefs the legacy `far` / `near` macros directly after including
+// <windows.h>, and <minwindef.h>'s include guard stops them from ever being
+// defined again. Winsock spells its pointer parameters `FAR *`, i.e. `far *`,
+// including inside the FD_ZERO()/FD_SET() macros expanded further down, so put
+// the two empty macros back - exactly what <minwindef.h> would do if it were
+// re-read.
+#define far
+#define near
+#else
 #include <netinet/in.h>
+#endif
 
 namespace moonray {
 namespace stats {
+
+// Winsock's socket handle is an unsigned UINT_PTR with its own invalid value,
+// not a small non-negative file descriptor, so the handle type and the "no
+// socket" value are named rather than assumed. Everything else about the BSD
+// socket API is spelled identically on both platforms.
+#ifdef _WIN32
+using SocketHandle = SOCKET;
+constexpr SocketHandle kInvalidSocket = INVALID_SOCKET;
+#else
+using SocketHandle = int;
+constexpr SocketHandle kInvalidSocket = -1;
+#endif
+
+// Winsock requires a per-process WSAStartup() before any socket call; this is
+// the idempotent, thread-safe wrapper for it. Nothing to do elsewhere.
+void initSocketLayer();
 
 class SocketException : public std::runtime_error
 {
@@ -45,7 +77,7 @@ public:
     void swap(ListeningSocket& other) noexcept;
 
 private:
-    int mFD;
+    SocketHandle mFD;
 };
 
 class Socket
@@ -71,7 +103,7 @@ public:
     void swap(Socket& other) noexcept;
 
 private:
-    int mFD;
+    SocketHandle mFD;
 };
 
 class SocketStreambuf : public std::streambuf

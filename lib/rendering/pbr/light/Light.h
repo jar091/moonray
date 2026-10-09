@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Light.hh"
-#include "LightUtil.h"
+#include <moonray/rendering/pbr/light/LightUtil.h>
 #include <moonray/rendering/pbr/lightfilter/LightFilter.h>
 #include <moonray/rendering/pbr/core/Distribution.h>
 

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Primitive.h"
+#include <moonray/rendering/geom/prim/Primitive.h>
 #include <embree4/rtcore.h>
 
 namespace moonray {

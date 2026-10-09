@@ -4,8 +4,8 @@
 
 #include <moonray/rendering/pbr/core/Scene.h>
 
-#include "LightUtil.h"
-#include "LightSet.h"
+#include <moonray/rendering/pbr/light/LightUtil.h>
+#include <moonray/rendering/pbr/light/LightSet.h>
 
 #include <moonray/rendering/shading/Intersection.h>
 #include <moonray/rendering/pbr/core/RayState.h>

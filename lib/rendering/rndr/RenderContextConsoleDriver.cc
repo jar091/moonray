@@ -3,8 +3,8 @@
 
 //
 //
-#include "RenderContextConsoleDriver.h"
-#include "RenderContext.h"
+#include <moonray/rendering/rndr/RenderContextConsoleDriver.h>
+#include <moonray/rendering/rndr/RenderContext.h>
 
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/rendering/texturing/sampler/TextureTLState.h>

@@ -5,8 +5,8 @@
 /// @file Distribution.cc
 /// $Id$
 ///
-#include "Distribution.h"
-#include "Util.h"
+#include <moonray/rendering/pbr/core/Distribution.h>
+#include <moonray/rendering/pbr/core/Util.h>
 
 #include <moonray/rendering/pbr/core/Distribution_ispc_stubs.h>
 #include <moonray/rendering/pbr/core/ImageColorCorrect_ispc_stubs.h>

@@ -1,8 +1,8 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "RenderDriver.h"
-#include "Util.h"
+#include <moonray/rendering/rndr/RenderDriver.h>
+#include <moonray/rendering/rndr/Util.h>
 
 #include <moonray/rendering/mcrt_common/Clock.h>
 #include <scene_rdl2/common/fb_util/ActivePixels.h>

@@ -3,8 +3,8 @@
 
 //
 //
-#include "AdaptiveRenderTilesTable.h"
-#include "Film.h"
+#include <moonray/rendering/rndr/AdaptiveRenderTilesTable.h>
+#include <moonray/rendering/rndr/Film.h>
 
 #include <scene_rdl2/common/fb_util/FbTypes.h>
 #include <scene_rdl2/common/math/Viewport.h>

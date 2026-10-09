@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "BasicTexture.h"
+#include <moonray/rendering/shading/BasicTexture.h>
 
 #include <moonray/rendering/shading/Shading.h>
 #include <moonray/rendering/shading/Texture.h>

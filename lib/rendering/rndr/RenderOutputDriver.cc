@@ -3,12 +3,12 @@
 
 /// @file RenderOutputDriver.cc
 
-#include "Film.h"
-#include "FrameState.h"
-#include "ImageWriteDriver.h"
-#include "RenderContext.h"
-#include "RenderOutputDriverImpl.h"
-#include "Util.h"
+#include <moonray/rendering/rndr/Film.h>
+#include <moonray/rendering/rndr/FrameState.h>
+#include <moonray/rendering/rndr/ImageWriteDriver.h>
+#include <moonray/rendering/rndr/RenderContext.h>
+#include <moonray/rendering/rndr/RenderOutputDriverImpl.h>
+#include <moonray/rendering/rndr/Util.h>
 
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/rendering/mcrt_common/Clock.h>
@@ -28,12 +28,15 @@
 #include <tbb/parallel_for.h>
 
 #include <exception>
+#include <filesystem>
 #include <stdlib.h>
 #include <unordered_map>
 #include <vector>
 
 #ifdef __INTEL_COMPILER
 // We don't need any include for half float instructions
+#elif defined(_MSC_VER)
+#include <intrin.h>             // MSVC has no <x86intrin.h>; the F16C intrinsics live here
 #else // else __INTEL_COMPILER
 #ifndef __ARM_NEON__
 #include <x86intrin.h>          // _mm_cvtps_ph, _cvtph_ps : for GCC build
@@ -54,6 +57,17 @@ auto freeChar = [](char *c) { free(c); };
 std::string
 realfile(const std::string &filename)
 {
+#ifdef _WIN32
+    // std::filesystem::canonical() is realpath()'s exact counterpart here: it
+    // resolves symlinks and '..', and it fails for a path that does not exist -
+    // which is the case realpath() reports by returning nullptr and the caller
+    // answers by keeping the name as given.
+    try {
+        return std::filesystem::canonical(filename).string();
+    } catch (const std::exception &) {
+        return filename;
+    }
+#else
     std::unique_ptr<char, decltype(freeChar)>
         rp(realpath(filename.c_str(), nullptr), freeChar);
 
@@ -62,6 +76,7 @@ realfile(const std::string &filename)
     }
 
     return filename;
+#endif
 }
 
 } // namespace

@@ -4,7 +4,7 @@
 ///
 ///
 
-#include "Dipole.h"
+#include <moonray/rendering/shading/bssrdf/Dipole.h>
 
 #include <moonray/rendering/shading/bsdf/Fresnel.h>
 #include <moonray/rendering/shading/PbrValidity.h>

@@ -14,6 +14,7 @@
 #include <scene_rdl2/render/util/stdmemory.h>
 
 #include <random>
+#include <mutex>
 
 using namespace scene_rdl2;
 using namespace scene_rdl2::math;
@@ -84,8 +85,8 @@ ImageMap::ImageMap(const scene_rdl2::rdl2::SceneClass &sceneClass, const std::st
     // to allow for the possibility that we may someday create these maps
     // on multiple threads, we'll protect the writes of the class statics
     // with a mutex.
-    static tbb::mutex errorMutex;
-    tbb::mutex::scoped_lock lock(errorMutex);
+    static std::mutex errorMutex;
+    std::lock_guard<std::mutex> lock(errorMutex);
     MOONRAY_START_THREADSAFE_STATIC_WRITE
     sStaticImageMapData.sErrorInvalidUdimCoord =
         sLogEventRegistry.createEvent(scene_rdl2::logging::ERROR_LEVEL,

@@ -14,6 +14,17 @@
 #define SIZEOF_STD_VECTOR           24
 #define SIZEOF_VARIANCEAOVMAP       80
 #define AOV_SCHEMA_MEMBERS_PADDING  6
+#elif defined(PLATFORM_WINDOWS)
+// MSVC's std::unordered_map is 64 bytes (list head + size, a std::vector of
+// bucket iterators, and the traits object carrying max_load_factor plus the
+// hasher and equality functors) where libstdc++'s is 56. PLATFORM_WINDOWS
+// rather than _MSC_VER because ISPC has to derive the same padding and only
+// sees the -D definitions.
+#define SIZEOF_BGEXTRAAOVS          24
+#define SIZEOF_LPE_STATEMACHINE     8
+#define SIZEOF_LABELSUBSTITUTIONS   64
+#define SIZEOF_STD_VECTOR           24
+#define AOV_SCHEMA_MEMBERS_PADDING  6
 #else
 #if STL_VERSION <= 4
 #define SIZEOF_BGEXTRAAOVS          24

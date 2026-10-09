@@ -3,13 +3,18 @@
 
 //
 
-#include "ProcessStats.h"
+#include <moonray/common/mcrt_util/ProcessStats.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <psapi.h>    // GetProcessMemoryInfo
+#else
 #include <unistd.h>
+#endif
 #ifdef __APPLE__
 #include <libproc.h>
 #include <mach/mach_time.h>
-#endif 
+#endif
 
 namespace moonray {
 
@@ -20,9 +25,11 @@ ProcessUtilization::getUserSeconds(const ProcessUtilization &start) const
 {
 #ifdef __APPLE__
     return (this->userTime - start.userTime) / 1E9; // Nano to Sec
+#elif defined(_WIN32)
+    return (this->userTime - start.userTime) / 10000000; // 100ns ticks to Sec
 #else
     return (this->userTime - start.userTime) / sysconf(_SC_CLK_TCK);
-#endif 
+#endif
 }
 
 int64
@@ -30,14 +37,16 @@ ProcessUtilization::getSystemSeconds(const ProcessUtilization &start) const
 {
 #ifdef __APPLE__
     return (this->systemTime - start.systemTime) / 1E9; // Nano to Sec
+#elif defined(_WIN32)
+    return (this->systemTime - start.systemTime) / 10000000; // 100ns ticks to Sec
 #else
     return (this->systemTime - start.systemTime) / sysconf(_SC_CLK_TCK);
-#endif 
+#endif
 }
 
 ProcessStats::ProcessStats()
 {
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(_WIN32)
     // Don't need to try to open /proc
 #else
     mStatmFile.open("/proc/self/statm");
@@ -56,6 +65,18 @@ ProcessStats::getBytesRead() const
 #ifdef __APPLE__
 
     // TODO: figure a way to gets the process bytes read
+
+#elif defined(_WIN32)
+
+    // IO_COUNTERS::ReadTransferCount is the number of bytes transferred by
+    // this process' read operations, which is what /proc/self/io's first
+    // field (rchar) reports.
+    mReadIOMutex.lock();
+    IO_COUNTERS io;
+    if (GetProcessIoCounters(GetCurrentProcess(), &io)) {
+        bytesRead = static_cast<int64>(io.ReadTransferCount);
+    }
+    mReadIOMutex.unlock();
 
 #else
     mReadIOMutex.lock();
@@ -93,6 +114,18 @@ ProcessStats::getProcessMemory() const
     size = proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &info, sizeof(info));
     if (size == PROC_PIDTASKINFO_SIZE) {
         currentMemoryUsage = info.pti_resident_size; // Already in bytes
+    }
+    mMemoryReadMutex.unlock();
+
+#elif defined(_WIN32)
+
+    // WorkingSetSize is the resident set of the process, already in bytes,
+    // i.e. the equivalent of statm's resident pages * _SC_PAGE_SIZE.
+    mMemoryReadMutex.lock();
+    PROCESS_MEMORY_COUNTERS pmc;
+    pmc.cb = sizeof(pmc);
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+        currentMemoryUsage = static_cast<int64>(pmc.WorkingSetSize);
     }
     mMemoryReadMutex.unlock();
 
@@ -148,6 +181,28 @@ ProcessStats::getProcessUtilization() const
     if (size == PROC_PIDTASKINFO_SIZE) {
         result.userTime = (info.pti_total_user) * timebase_info.numer / timebase_info.denom; // Nanosecs
         result.systemTime = (info.pti_total_system) * timebase_info.numer / timebase_info.denom; // Nanosecs
+    }
+    mSystemUtilMutex.unlock();
+
+#elif defined(_WIN32)
+
+    // GetProcessTimes() reports kernel/user time as FILETIMEs holding a count
+    // of 100-nanosecond ticks (not a date), which is the Windows analogue of
+    // /proc/self/stat fields 14 and 15 (clock ticks). getUserSeconds() /
+    // getSystemSeconds() divide by the matching 1e7 instead of _SC_CLK_TCK.
+    result.userTime = 0;
+    result.systemTime = 0;
+
+    mSystemUtilMutex.lock();
+    FILETIME creationTime, exitTime, kernelTime, userTime;
+    if (GetProcessTimes(GetCurrentProcess(), &creationTime, &exitTime, &kernelTime, &userTime)) {
+        ULARGE_INTEGER u, s;
+        u.LowPart  = userTime.dwLowDateTime;
+        u.HighPart = userTime.dwHighDateTime;
+        s.LowPart  = kernelTime.dwLowDateTime;
+        s.HighPart = kernelTime.dwHighDateTime;
+        result.userTime   = static_cast<int64>(u.QuadPart);
+        result.systemTime = static_cast<int64>(s.QuadPart);
     }
     mSystemUtilMutex.unlock();
 

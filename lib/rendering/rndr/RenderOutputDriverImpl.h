@@ -5,9 +5,9 @@
 //
 #pragma once
 
-#include "OiioReader.h"
-#include "RenderOutputDriver.h"
-#include "RenderOutputWriter.h"
+#include <moonray/rendering/rndr/OiioReader.h>
+#include <moonray/rendering/rndr/RenderOutputDriver.h>
+#include <moonray/rendering/rndr/RenderOutputWriter.h>
 
 #include <moonray/rendering/pbr/core/Aov.h>
 #include <scene_rdl2/common/grid_util/Sha1Util.h>

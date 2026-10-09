@@ -5,7 +5,7 @@
 /// @file MeshTessellationUtil.cc
 ///
 
-#include "MeshTessellationUtil.h"
+#include <moonray/rendering/geom/prim/MeshTessellationUtil.h>
 #include <numeric>
 
 namespace moonray {

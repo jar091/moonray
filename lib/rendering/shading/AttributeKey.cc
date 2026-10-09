@@ -1,14 +1,14 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "AttributeKey.h"
+#include <moonray/rendering/shading/AttributeKey.h>
 
 using namespace scene_rdl2;
 
 namespace moonray {
 namespace shading {
 
-tbb::mutex AttributeKey::sRegisterMutex;
+std::mutex AttributeKey::sRegisterMutex;
 std::vector<std::string> AttributeKey::sKeyNames;
 std::vector<AttributeType> AttributeKey::sKeyTypes;
 std::vector<size_t> AttributeKey::sKeySizes;

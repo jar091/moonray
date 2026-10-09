@@ -1,8 +1,8 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Camera.h"
-#include "OrthographicCamera.h"
+#include <moonray/rendering/pbr/camera/Camera.h>
+#include <moonray/rendering/pbr/camera/OrthographicCamera.h>
 
 #include <moonray/rendering/mcrt_common/Ray.h>
 #include <scene_rdl2/scene/rdl2/rdl2.h>

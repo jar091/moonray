@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "ImageWriteCache.h"
+#include <moonray/rendering/rndr/ImageWriteCache.h>
 
 #include <scene_rdl2/render/util/AlignedAllocator.h>
 

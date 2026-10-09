@@ -4,8 +4,8 @@
 #pragma once
 
 #include "Ray.hh"
-#include "Types.h"
-#include "Util.h"
+#include <moonray/rendering/mcrt_common/Types.h>
+#include <moonray/rendering/mcrt_common/Util.h>
 
 #include <moonray/common/mcrt_macros/moonray_nonvirt_baseclass.h>
 #include <scene_rdl2/common/math/Vec3.h>

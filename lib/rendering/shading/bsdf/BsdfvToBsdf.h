@@ -4,7 +4,7 @@
 /// @file BsdfvToBsdf.h
 #pragma once
 
-#include "Bsdf.h"
+#include <moonray/rendering/shading/bsdf/Bsdf.h>
 
 namespace moonray {
 namespace shading {

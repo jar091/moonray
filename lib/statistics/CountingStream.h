@@ -94,11 +94,15 @@ class CountingStream : public std::ostream
 public:
     static const char sRecordSeparator = CountingStreamBuf::sRecordSeparator;
 
+    // std::basic_ostream has no default constructor; the base has to be given
+    // a streambuf. mBuf is a member, so it is only constructed after the base,
+    // hence the two-step: construct the base without a buffer, then attach
+    // mBuf (rdbuf() also clears the stream state, as init() did).
     CountingStream() :
-        std::ostream(),
+        std::ostream(nullptr),
         mBuf()
     {
-        this->init(&mBuf);
+        this->rdbuf(&mBuf);
     }
 
     std::size_t getWidth() const

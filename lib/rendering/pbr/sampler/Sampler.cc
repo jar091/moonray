@@ -1,8 +1,8 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Sample.h"
-#include "Sampler.h"
+#include <moonray/rendering/pbr/sampler/Sample.h>
+#include <moonray/rendering/pbr/sampler/Sampler.h>
 
 #include <fstream>
 #include <iterator>

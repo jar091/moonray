@@ -5,7 +5,7 @@
 /// @file AmorphousVolume.cc
 ///
 
-#include "AmorphousVolume.h"
+#include <moonray/rendering/geom/prim/AmorphousVolume.h>
 
 #include <moonray/rendering/shading/State.h>
 

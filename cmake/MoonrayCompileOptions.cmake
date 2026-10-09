@@ -34,7 +34,7 @@ function(${PROJECT_NAME}_cxx_compile_options target)
                     -O3                         # the default is -O2 for RELWITHDEBINFO
                 >
         )
-    elseif (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         target_compile_options(${target}
             # TODO: Some if not all of these should probably be PUBLIC
             PRIVATE
@@ -46,12 +46,12 @@ function(${PROJECT_NAME}_cxx_compile_options target)
                 -Wno-uninitialized              # Disable warning for Interpolater
                 -Wno-register                   # Flex uses deprecated register keyword
         )
-    elseif (CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         target_compile_options(${target}
             PUBLIC
                 -Wno-gnu-alignof-expression
         )
-    elseif (CMAKE_CXX_COMPILER_ID STREQUAL Intel)
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
         target_compile_options(${target}
             # TODO: Some if not all of these should probably be PUBLIC
             PRIVATE
@@ -63,6 +63,17 @@ function(${PROJECT_NAME}_cxx_compile_options target)
                 -fno-strict-aliasing            # TODO: add a note
                 -pthread
                 -restrict
+        )
+    # "MSVC" must be quoted: unquoted it is dereferenced as the predefined
+    # CMake variable MSVC (== 1), so the comparison would never match.
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        target_compile_options(${target}
+            PRIVATE
+                /arch:AVX2                      # match -march=core-avx2 (also predefines __AVX__/__AVX2__)
+                /EHsc                           # standard C++ exception handling
+                /bigobj                         # some TUs exceed the default section limit
+                /Zc:preprocessor                # conforming preprocessor (VA_ARGS behavior of the assert macros)
+                /MP                             # parallel compilation within a project
         )
     endif()
 endfunction()

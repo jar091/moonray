@@ -1,14 +1,15 @@
 // Copyright 2024-2025 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
-#include "AffinityManager.h"
+#include <moonray/rendering/mcrt_common/AffinityManager.h>
 
 #include <scene_rdl2/common/except/exceptions.h>
+#ifdef PLATFORM_LINUX
 #include <scene_rdl2/common/grid_util/CpuSocketUtil.h>
-#ifndef PLATFORM_APPLE
 #include <scene_rdl2/render/util/ProcCpuAffinity.h>
-#endif // end of PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX
 #include <scene_rdl2/render/util/StrUtil.h>
 
+#include <algorithm> // std::sort
 #include <numeric> // std::iota
 #include <sstream>
 #include <thread>
@@ -24,9 +25,9 @@ namespace mcrt_common {
     
 MemoryNode::MemoryNode(const unsigned activeThreadCount)
     : mNumaNodeId {~static_cast<unsigned>(0)}
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     , mNumaNode {nullptr}
-#endif // end non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX
     , mActiveThreadCount {activeThreadCount}
 //
 // MemoryNode constructor regarding Memory Affinity Off
@@ -47,7 +48,7 @@ MemoryNode::MemoryNode(const unsigned activeThreadCount)
     */
 }
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     
 MemoryNode::MemoryNode(const unsigned numaNodeId,
                        const scene_rdl2::grid_util::NumaNode* numaNode,
@@ -89,21 +90,21 @@ MemoryNode::MemoryNode(const unsigned numaNodeId,
     */
 }
 
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
 std::string
 MemoryNode::show() const
 {
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
     auto showNumaNode = [&]() -> std::string {
         return "mNumaNode is nullptr";
     };
-#else // else PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
     auto showNumaNode = [&]() -> std::string {
         if (!mNumaNode) return "mNumaNode is nullptr";
         return mNumaNode->show();
     };
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
     std::ostringstream ostr;
     ostr << "MemoryNode {\n"
@@ -131,7 +132,7 @@ MemoryAffinityManager::MemoryAffinityManager(const std::string& memAffinityDef)
 {
 }
 
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
 
 bool
 MemoryAffinityManager::init(const std::shared_ptr<const CpuAffinityManager>& cpuAff)
@@ -153,7 +154,7 @@ MemoryAffinityManager::init(const std::shared_ptr<const CpuAffinityManager>& cpu
     return true;
 }
 
-#else // else PLATFORM_APPLE    
+#else // else of !PLATFORM_LINUX (NUMA path)    
 
 bool
 MemoryAffinityManager::init(const std::shared_ptr<const CpuAffinityManager>& cpuAff)
@@ -209,7 +210,7 @@ MemoryAffinityManager::init(const std::shared_ptr<const CpuAffinityManager>& cpu
     return true;
 }
 
-#endif // end of Non PLATFORM_APPLE 
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only) 
 
 unsigned
 MemoryAffinityManager::getActiveNumaNodeCount() const
@@ -221,7 +222,7 @@ MemoryAffinityManager::getActiveNumaNodeCount() const
     return total;
 }
 
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
 
 void
 MemoryAffinityManager::setupLogInfo(std::vector<std::string>& titleTbl,
@@ -232,7 +233,7 @@ MemoryAffinityManager::setupLogInfo(std::vector<std::string>& titleTbl,
     msgTbl.push_back("disabled");
 }
 
-#else // else PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
 
 void
 MemoryAffinityManager::setupLogInfo(std::vector<std::string>& titleTbl,
@@ -248,7 +249,7 @@ MemoryAffinityManager::setupLogInfo(std::vector<std::string>& titleTbl,
     }
 }
 
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
 std::string
 MemoryAffinityManager::show() const
@@ -266,7 +267,7 @@ MemoryAffinityManager::show() const
     return ostr.str();
 }
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     
 std::vector<unsigned>
 MemoryAffinityManager::calcActiveNumaNodeIdTbl(const std::shared_ptr<const CpuAffinityManager>& cpuAff) const
@@ -308,15 +309,15 @@ MemoryAffinityManager::calcThreadCountOnActiveNumaNode(const unsigned numaNodeId
     return totalThreads;
 }
 
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
 std::string
 MemoryAffinityManager::showNumaUtil() const
 {
     std::ostringstream ostr;
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
     ostr << "mNumaUtil is empty";
-#else // else PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
     if (!mNumaUtil) {
         ostr << "mNumaUtil is empty";
     } else {
@@ -324,7 +325,7 @@ MemoryAffinityManager::showNumaUtil() const
              << scene_rdl2::str_util::addIndent(mNumaUtil->show()) << '\n'
              << "}";
     }
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
     return ostr.str();
 }
 
@@ -390,18 +391,18 @@ CpuAffinityManager::CpuAffinityManager(const unsigned desiredNumThreads,
                                        const std::string& cpuAffinityDef,
                                        const std::string& socketAffinityDef)
     : mNumThreads {desiredNumThreads}
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
     , mCpuAffinityDef {""}
     , mSocketAffinityDef {""}
-#else // else PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
     , mCpuAffinityDef {cpuAffinityDef}
     , mSocketAffinityDef {socketAffinityDef}
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 {
     configureCpuAffinity();
 }
 
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
 bool
 CpuAffinityManager::doRenderPrepCpuAffinity(std::string& msg)
 {
@@ -409,7 +410,7 @@ CpuAffinityManager::doRenderPrepCpuAffinity(std::string& msg)
     return true;
 }
 
-#else // Not PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
 
 bool
 CpuAffinityManager::doRenderPrepCpuAffinity(std::string& msg)
@@ -442,9 +443,9 @@ CpuAffinityManager::doRenderPrepCpuAffinity(std::string& msg)
     msg = ostr.str();
     return result;
 }
-#endif // end of Not PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX
 
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
 
 void
 CpuAffinityManager::setupLogInfo(std::vector<std::string>& titleTbl,
@@ -460,7 +461,7 @@ CpuAffinityManager::setupLogInfo(std::vector<std::string>& titleTbl,
     msgTbl.push_back("disabled");
 }
 
-#else // else PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
 
 void
 CpuAffinityManager::setupLogInfo(std::vector<std::string>& titleTbl,
@@ -506,7 +507,7 @@ CpuAffinityManager::setupLogInfo(std::vector<std::string>& titleTbl,
     }
 }
 
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
 std::string
 CpuAffinityManager::show() const
@@ -529,7 +530,7 @@ CpuAffinityManager::show() const
     return ostr.str();
 }
 
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
 void
 CpuAffinityManager::configureCpuAffinity()
 {
@@ -544,7 +545,7 @@ CpuAffinityManager::configureCpuAffinity()
     mEnableMcrtCpuAffinityAll = false;
 }
 
-#else // Not PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
 
 void
 CpuAffinityManager::configureCpuAffinity()
@@ -682,7 +683,7 @@ CpuAffinityManager::configureCpuAffinity()
     mMcrtMessage = ostr.str();
 }
 
-#endif // end of Not PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX
 
 //------------------------------------------------------------------------------------------
 
@@ -791,19 +792,66 @@ AffinityManager::show() const
     return ostr.str();
 }
 
+namespace {
+
+std::string
+idTblToDefStr(const std::vector<unsigned>& tbl)
+//
+// Formats a sorted id table as "0-3,7,9-11".
+//
+{
+#ifdef PLATFORM_LINUX
+    return scene_rdl2::grid_util::CpuSocketUtil::idTblToDefStr(tbl);
+#else
+    // grid_util's CpuSocketUtil is one of the Linux-only sources (it parses
+    // the /proc CPU topology), so the formatting - which showTbl() below needs
+    // on every platform - is reproduced here. Same algorithm, same output as
+    // CpuSocketUtil::idTblToDefStr().
+    std::string idString;
+
+    constexpr size_t defaultId = ~static_cast<size_t>(0);
+    size_t startId {defaultId}; // initial condition
+    size_t endId {defaultId}; // initial condition
+    auto initRange = [&](const unsigned id) { startId = endId = id; };
+    auto extendRange = [&](const unsigned id) { endId = id; };
+    auto flushRangeId = [&] {
+        if (!idString.empty()) idString += ',';
+        idString += std::to_string(startId);
+        if (startId != endId) idString += ('-' + std::to_string(endId));
+    };
+
+    std::vector<unsigned> workTbl = tbl;
+    std::sort(workTbl.begin(), workTbl.end());
+
+    for (size_t i = 0; i < workTbl.size(); ++i) {
+        if (startId == defaultId) initRange(workTbl[i]);
+        else if (workTbl[i] == endId + 1) extendRange(workTbl[i]);
+        else {
+            flushRangeId();
+            initRange(workTbl[i]);
+        }
+    }
+    if (startId != defaultId) flushRangeId();
+
+    return idString;
+#endif // end of !PLATFORM_LINUX
+}
+
+} // namespace
+
 // static function
 std::string
 AffinityManager::showTbl(const std::string& msg, const std::vector<unsigned>& tbl)
 {
     std::ostringstream ostr;
     if (!msg.empty()) ostr << msg << ' ';
-    ostr << "(total:" << tbl.size() << ") {" << scene_rdl2::grid_util::CpuSocketUtil::idTblToDefStr(tbl) << '}';
+    ostr << "(total:" << tbl.size() << ") {" << idTblToDefStr(tbl) << '}';
     return ostr.str();
 }
 
 //-----------------------------------------------------------------------------------------
 
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
 
 // static function
 void
@@ -815,7 +863,7 @@ AffinityManager::calcAutoAffinityOptions(const unsigned desiredNumThreads,
     memAffinityDef = "";
 }
 
-#else // Not PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
 
 // static function
 void
@@ -837,7 +885,7 @@ AffinityManager::calcAutoAffinityOptions(const unsigned desiredNumThreads,
     // Try to access shared memory and get some information regarding other MoonRay process's affinity condition.
     // MOONRAY-5367 (Record MoonRay affinity status into shared memory to share this info with other MoonRay)
 }
-#endif // end of Not PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX
 
 void
 AffinityManager::parserConfigure()

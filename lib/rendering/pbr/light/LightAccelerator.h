@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Light.h"
+#include <moonray/rendering/pbr/light/Light.h>
 #include "LightAccelerator.hh"
 
 #include <scene_rdl2/common/math/Vec3.h>

@@ -1,27 +1,42 @@
 // Copyright 2023-2025 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
-#include "ImageWriteDriver.h"
+#include <moonray/rendering/rndr/ImageWriteDriver.h>
 
-#include "CheckpointSigIntHandler.h"
-#include "ImageWriteCache.h"
-#include "ProcKeeper.h"
-#include "RenderContext.h"
-#include "RenderProgressEstimation.h"
+#include <moonray/rendering/rndr/CheckpointSigIntHandler.h>
+#include <moonray/rendering/rndr/ImageWriteCache.h>
+#include <moonray/rendering/rndr/ProcKeeper.h>
+#include <moonray/rendering/rndr/RenderContext.h>
+#include <moonray/rendering/rndr/RenderProgressEstimation.h>
 
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/rendering/mcrt_common/Util.h>
 
 #include <scene_rdl2/render/util/StrUtil.h>
+#ifdef _WIN32
+// Put back the empty `far` / `near` macros scene_rdl2's DebugLog.h #undefs:
+// <winsock2.h>, reached through TimeUtil.h, still spells its pointers `FAR *`.
+#define far
+#define near
+#endif
 #include <scene_rdl2/render/util/TimeUtil.h>
 
 #include <cstdlib>              // getenv, EXIT_SUCCESS
 #include <iomanip>              // std::put_time
+#include <thread>               // sleep_for
+#ifdef _WIN32
+#include <malloc.h>             // _heapmin
+#include <process.h>            // _getpid
+#include <io.h>                 // _unlink
+#include <windows.h>            // GetComputerNameA, GetProcessMemoryInfo
+#include <psapi.h>              // GetProcessMemoryInfo
+#else
 #ifndef __APPLE__
 #include <malloc.h>             // malloc_trim
 #include <sys/sysinfo.h>        // sysinfo
 #endif
 #include <sys/types.h>          // getpid
 #include <unistd.h>             // getpid, gethostname
+#endif
 
 // This directive is used to dump all ImageWriteDriver related memory tracking information
 //#define DEBUG_MSG_MEMUSAGE
@@ -37,12 +52,20 @@
 # endif
 #endif
 
+#ifdef _WIN32
+// The Windows spellings of the POSIX libc calls used below.
+//   _heapmin() releases the unused parts of the CRT heap back to the OS, which
+//   is what the malloc_trim() calls are here for (accurate memory reporting).
+#define malloc_trim(x) _heapmin()
+#define unlink _unlink
+#endif
+
 namespace moonray {
 namespace rndr {
 
 ImageWriteDriver::ImageWriteDriver()
 {
-    memset(&mSigInfo, 0x0, sizeof(siginfo_t));
+    memset(&mSigInfo, 0x0, sizeof(mSigInfo));
 
     // We have to build thread after finish mMutex and mCvBoot initialization completed
     mThread = std::move(std::thread(threadMain, this));
@@ -63,7 +86,7 @@ ImageWriteDriver::~ImageWriteDriver()
 }
 
 void
-ImageWriteDriver::interruptBySignal(const siginfo_t& sigInfo)
+ImageWriteDriver::interruptBySignal(const SigInfo& sigInfo)
 //
 // This function is called from a signal handler
 // So we should only use the async-signal-safe operation inside this function
@@ -286,6 +309,13 @@ size_t
 ImageWriteDriver::getProcMemUsage()
 // Return current process memory size (rss size and not include vsize) for debug
 {
+#ifdef _WIN32
+    // WorkingSetSize is the Win32 equivalent of statm/stat resident set size and
+    // is already expressed in bytes (same mapping as ProcessStats.cc, M19).
+    PROCESS_MEMORY_COUNTERS pmc;
+    if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) return 0;
+    return static_cast<size_t>(pmc.WorkingSetSize);
+#else
     std::ifstream stat_stream("/proc/self/stat", std::ios_base::in);
 
     std::string pid, comm, state, ppid, pgrp, session, tty_nr;
@@ -306,6 +336,7 @@ ImageWriteDriver::getProcMemUsage()
 
     // return vsize + rssByteSize;
     return rssByteSize;         // Only return rss size
+#endif
 }
 
 std::string
@@ -417,7 +448,8 @@ ImageWriteDriver::threadMain(ImageWriteDriver* driver)
             if (!driver->mThreadShutdown) {
                 driver->mCvBoot.notify_one(); // nofity to RenderDriver::progressCheckpointRenderFrame()
 
-                usleep(1000); // 1000us = 1ms : wake up every 1ms and check ImageWriteCache
+                // 1000us = 1ms : wake up every 1ms and check ImageWriteCache
+                std::this_thread::sleep_for(std::chrono::microseconds(1000));
             } else {
                 // We are in the shutdown sequence and simply skip all CPU yield logic
             }
@@ -453,12 +485,22 @@ std::string
 ImageWriteDriver::getTmpFilePrefix()
 {
     if (mTmpFilePrefix.empty()) {
+#ifdef _WIN32
+        // gethostname() is a Winsock call and would drag WSAStartup() in; the
+        // Win32 computer name is the same machine identifier and needs no
+        // initialization.
+        char buff[MAX_COMPUTERNAME_LENGTH + 1];
+        DWORD buffSize = static_cast<DWORD>(sizeof(buff));
+        if (!GetComputerNameA(buff, &buffSize)) std::strcpy(buff, "unknown");
+        const int myPid = _getpid();
+#else
         char buff[HOST_NAME_MAX];
         if (gethostname(buff, HOST_NAME_MAX) == -1) std::strcpy(buff, "unknown");
+        const pid_t myPid = getpid();
+#endif
         std::string hostname(buff);
         size_t pos = hostname.find(".");
         if (pos != std::string::npos) hostname.erase(pos);
-        pid_t myPid = getpid();
         mTmpFilePrefix = "moonray_" + hostname + "_" + std::to_string((size_t)myPid) + "_";
     }
     return mTmpFilePrefix;
@@ -527,7 +569,7 @@ ImageWriteDriver::signalAction()
 // This function never return.
 //
 {
-    auto showSigInfo = [](const siginfo_t& info) -> std::string {
+    auto showSigInfo = [](const SigInfo& info) -> std::string {
         std::ostringstream ostr;
         ostr
         << "siginfo {\n"

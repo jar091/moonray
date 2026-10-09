@@ -10,8 +10,8 @@
 // integrator (both vector and scalar).
 //   PathIntegratorMultiSampler.ispc
 
-#include "PathIntegrator.h"
-#include "PathIntegratorUtil.h"
+#include <moonray/rendering/pbr/integrator/PathIntegrator.h>
+#include <moonray/rendering/pbr/integrator/PathIntegratorUtil.h>
 
 #include <moonray/common/time/Timer.h>
 #include <moonray/rendering/pbr/core/Aov.h>
@@ -20,7 +20,7 @@
 #include <moonray/rendering/pbr/core/RayState.h>
 #include <moonray/rendering/pbr/core/PathVisualizer.h>
 #include <scene_rdl2/common/rec_time/RecTime.h>
-#include "VolumeTransmittance.h"
+#include <moonray/rendering/pbr/integrator/VolumeTransmittance.h>
 
 // using namespace scene_rdl2::math; // can't use this as it breaks openvdb in clang.
 using RenderTimer = moonray::time::RAIITimerAverageDouble;

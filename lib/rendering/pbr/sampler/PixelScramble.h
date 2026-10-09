@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "Array8.h"
-#include "gphash.h"
-#include "SamplingConstants.h"
+#include <moonray/rendering/pbr/sampler/Array8.h>
+#include <moonray/rendering/pbr/sampler/gphash.h>
+#include <moonray/rendering/pbr/sampler/SamplingConstants.h>
 
 #include <moonray/rendering/pbr/camera/StereoView.h>
 
@@ -201,8 +201,13 @@ public:
         // arbitrarily largish number, prime so that it's less likely to interfere
         // with the mod below, to make sure different stereo views are decently far
         // apart.
+        // __builtin_bswap32 is GCC/clang; _byteswap_ulong is the MSVC spelling
+        // of the same byte reversal.
+#if defined(_MSC_VER) && !defined(__clang__)
+        idx ^= _byteswap_ulong(frameNumber + 2000291 * (stereoSeed + 1));
+#else
         idx ^= __builtin_bswap32(frameNumber + 2000291 * (stereoSeed + 1));
-        //idx ^= _byteswap_ulong(frameNumber + 2000291 * (stereoSeed + 1));
+#endif
         mSeed = gphash(idx);
     }
 

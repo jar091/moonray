@@ -18,13 +18,13 @@
 #include <scene_rdl2/render/util/AtomicFloat.h> // Needs to be included before any OpenImageIO file
 #include <moonray/rendering/pbr/integrator/PathIntegrator.h>
 
-#include "CheckpointSigIntHandler.h"
-#include "PixSampleRuntimeVerify.h"
-#include "RenderContext.h"
-#include "RenderDriver.h"
-#include "ResumeHistoryMetaData.h"
-#include "TileSampleSpecialEvent.h"
-#include "PathVisualizerManager.h"
+#include <moonray/rendering/rndr/CheckpointSigIntHandler.h>
+#include <moonray/rendering/rndr/PixSampleRuntimeVerify.h>
+#include <moonray/rendering/rndr/RenderContext.h>
+#include <moonray/rendering/rndr/RenderDriver.h>
+#include <moonray/rendering/rndr/ResumeHistoryMetaData.h>
+#include <moonray/rendering/rndr/TileSampleSpecialEvent.h>
+#include <moonray/rendering/rndr/PathVisualizerManager.h>
 
 #include <moonray/rendering/shading/ShadingTLState.h>
 

@@ -1,10 +1,10 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "BsdfComponent.h"
-#include "bsdf/Fresnel.h"
-#include "Ior.h"
-#include "Iridescence.h"
+#include <moonray/rendering/shading/BsdfComponent.h>
+#include <moonray/rendering/shading/bsdf/Fresnel.h>
+#include <moonray/rendering/shading/Ior.h>
+#include <moonray/rendering/shading/Iridescence.h>
 
 
 namespace moonray {

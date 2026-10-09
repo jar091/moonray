@@ -3,6 +3,16 @@
 
 #pragma once
 
+#ifdef _WIN32
+// scene_rdl2's common/platform/DebugLog.h #undefs the legacy `far` / `near`
+// macros directly after including <windows.h>, and <minwindef.h>'s include guard
+// stops them from ever being defined again. <winsock2.h> - which TimeUtil.h pulls
+// in for `timeval` - still spells its pointer parameters `FAR *`, i.e. `far *`,
+// so it cannot be parsed while they are missing. Putting the two empty macros
+// back is exactly what <minwindef.h> would do if it were re-read.
+#define far
+#define near
+#endif
 #include <scene_rdl2/render/util/TimeUtil.h>
 
 #include <sstream>

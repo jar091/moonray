@@ -5,7 +5,7 @@
 //
 #pragma once
 
-#include "RunTimeVerify.h"
+#include <moonray/rendering/rndr/RunTimeVerify.h>
 
 #include <scene_rdl2/common/fb_util/FbTypes.h>
 

@@ -7,7 +7,7 @@
 ///
 
 
-#include "LightSetSampler.h"
+#include <moonray/rendering/pbr/integrator/LightSetSampler.h>
 #include <moonray/rendering/pbr/core/RayState.h>
 #include <moonray/rendering/pbr/core/Util.h>
 

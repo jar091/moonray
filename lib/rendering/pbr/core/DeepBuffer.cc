@@ -1,10 +1,12 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "DeepBuffer.h"
+#include <moonray/rendering/pbr/core/DeepBuffer.h>
 
+#include <moonray/rendering/pbr/core/PbrTLState.h>
 #include <moonray/rendering/pbr/integrator/VolumeProperties.h>
 #include <scene_rdl2/common/except/exceptions.h>
+#include <scene_rdl2/render/util/Arena.h>
 
 #include <OpenEXR/ImfBoxAttribute.h>
 #include <OpenEXR/ImfChromaticitiesAttribute.h>
@@ -17,6 +19,7 @@
 #include <OpenEXR/ImfVecAttribute.h>
 
 #include <fstream>
+#include <vector>
 
 
 namespace moonray {
@@ -147,7 +150,13 @@ DeepBuffer::addSample(pbr::TLState *pbrTls,
     // transform the rgb + aov params into channel data that the regular addSample()
     //  function can accept
 
-    int channels[mNumChannels];
+    // mNumChannels is a runtime value, and variable-length arrays are a GCC
+    // extension. The thread's arena gives the same scoped, stack-like
+    // allocation on every platform, with no per-sample heap traffic.
+    scene_rdl2::alloc::Arena *arena = pbrTls->mArena;
+    SCOPED_MEM(arena);
+
+    int *channels = arena->allocArray<int>(mNumChannels);
     for (int i = 0; i < mNumChannels; i++) {
         // we're writing all the channels in this case so the channel list is
         //  just 0..mNumChannels-1
@@ -155,7 +164,7 @@ DeepBuffer::addSample(pbr::TLState *pbrTls,
     }
 
     // copy the beauty and aov data into the channel values array
-    float values[mNumChannels];
+    float *values = arena->allocArray<float>(mNumChannels);
     values[0] = rgb[0];
     values[1] = rgb[1];
     values[2] = rgb[2];
@@ -351,7 +360,7 @@ DeepBuffer::addSample8x8Safe(unsigned x, unsigned y, unsigned subpixelX, unsigne
                              float scale, float weight)
 {
     // Lock in case multiple threads want to add samples to this pixel
-    tbb::mutex::scoped_lock lock(mPixelMutex[getMutexIdx(x, y)]);
+    std::lock_guard<std::mutex> lock(mPixelMutex[getMutexIdx(x, y)]);
 
     addSample8x8(x, y, subpixelX, subpixelY, layer, ids, t, rayZ, normal, alpha,
                  channels, numChannels, values, scale, weight);
@@ -830,10 +839,11 @@ DeepBuffer::VolumePixelBuffer::mergeSegments(const DeepBuffer& deepBuffer,
     // This can also be extended to handle an arbitrary number of samples by simply adding
     // more exp() terms inside the log() and dividing by numPixelSamples instead of by 2.
     {
-        scene_rdl2::math::Color srcSigmaTSums[samplesPerPixel];  // per sample
-        for (unsigned i = 0; i < samplesPerPixel; i++) {
-            srcSigmaTSums[i] = scene_rdl2::math::Color(0.f);
-        }
+        // per sample; a std::vector because samplesPerPixel is a runtime value
+        // and variable-length arrays are a GCC extension (alignedSigmaTs above
+        // is heap-allocated for the same reason)
+        std::vector<scene_rdl2::math::Color> srcSigmaTSums(samplesPerPixel,
+                                                           scene_rdl2::math::Color(0.f));
         scene_rdl2::math::Color destSigmaSum(0.f);
         unsigned destIdx = 0;
         VolumeOutputSegment *outputSegment = firstOutputSegment;
@@ -1285,7 +1295,9 @@ DeepBuffer::writeHardSurfaceSegmentsNoMask(int idx,
         }
 
         // Copy into an array and compute the Z value from the ray direction and t
-        HardSurfaceSegment *segments[numSegments];
+        // numSegments is a runtime value and variable-length arrays are a GCC
+        // extension
+        std::vector<HardSurfaceSegment *> segments(numSegments);
         hs = const_cast<HardSurfaceSegment*>(mHardSurfaceSegments[layer][idx]);
         numSegments = 0;
         while (hs) {
@@ -1295,7 +1307,7 @@ DeepBuffer::writeHardSurfaceSegmentsNoMask(int idx,
         }
 
         // Sort segments in increasing Z order
-        std::sort(segments, segments + numSegments, sortSegmentByZ);
+        std::sort(segments.begin(), segments.begin() + numSegments, sortSegmentByZ);
 
         // Output the sorted segments.
         // We need to keep track of the total coverage as we output the surfaces in front

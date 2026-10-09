@@ -6,7 +6,20 @@
 #include "UNIXFileResource.h"
 #include <fstream>
 #include <scene_rdl2/render/util/Strings.h>
+#if defined(_WIN32)
+#include <io.h>       // _access
+#else
 #include <unistd.h>
+#endif
+
+#if defined(_WIN32)
+// UCRT spelling; mode 0 is the existence check (POSIX F_OK). Same shim as
+// scene_rdl2's render/util/Files.cc.
+#define access ::_access
+#ifndef F_OK
+#define F_OK 0
+#endif
+#endif
 
 namespace moonray {
 namespace file_resource {
@@ -29,7 +42,13 @@ UNIXFileResource::userLabel() const
 
 std::string UNIXFileResource::fileName() const
 {
+#if defined(_WIN32)
+    // Windows accepts either separator in a path, so both have to be honored
+    // (npos + 1 == 0 keeps the "no separator" case working, as before).
+    return mPath.substr(mPath.find_last_of("/\\") + 1);
+#else
     return mPath.substr(mPath.rfind('/') + 1);
+#endif
 }
 std::string UNIXFileResource::extension() const
 {

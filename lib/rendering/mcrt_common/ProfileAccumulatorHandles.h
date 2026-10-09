@@ -7,9 +7,9 @@
 // Not suitable for the update portion of the frame.
 //
 #pragma once
-#include "ProfileAccumulator.h"
-#include "ExecutionMode.h"
-#include "Util.h"
+#include <moonray/rendering/mcrt_common/ProfileAccumulator.h>
+#include <moonray/rendering/mcrt_common/ExecutionMode.h>
+#include <moonray/rendering/mcrt_common/Util.h>
 
 #ifdef PROFILE_ACCUMULATORS_ENABLED
     // Assumes the existence of a function called GetExclusiveAccumulators defined
@@ -74,7 +74,7 @@ struct AccumulatorHandles
     Accumulator *mInternalAccumulators[NUM_INTERNAL_ACC];
 };
 
-extern AccumulatorHandles gAccumulatorHandles;
+extern MOONRAY_MCRT_COMMON_EXPORT AccumulatorHandles gAccumulatorHandles;
 
 // This function has the job a querying the raw accumulators and transforming
 // them into exclusive times.

@@ -4,7 +4,7 @@
 //
 //
 #include "RayHandlerUtils.h"
-#include "RayHandlers.h"
+#include <moonray/rendering/pbr/handlers/RayHandlers.h>
 
 #include <moonray/rendering/pbr/core/Aov.h>
 
@@ -437,7 +437,18 @@ rayBundleHandler(mcrt_common::ThreadLocalState *tls, unsigned numEntries,
                 static_cast<geom::internal::BVHUserData*>(ray.ext.userData);
             const geom::internal::Primitive* prim = userData->mPrimitive;
             const scene_rdl2::rdl2::Material *rdl2Material = MNRY_VERIFY(prim)->getIntersectionMaterial(layer, ray);
-            const shading::Material *material = &rdl2Material->get<const shading::Material>();
+            // A hit point without a material is legal - a volume is shaded by
+            // its VolumeShader, and MoonRay's own example scenes leave the
+            // material of a volume assignment undefined - and the `if
+            // (material)` below is written for exactly that case. The
+            // dereference has to come *after* the check, not before it: with a
+            // null material this took the address of a member of a null
+            // object, which is undefined behaviour and crashes a release
+            // build (MNRY_VERIFY inside getIntersectionMaterial compiles away
+            // there, so nothing catches it earlier).
+            const shading::Material *material = rdl2Material
+                ? &rdl2Material->get<const shading::Material>()
+                : nullptr;
 
             // ---- Record ray for our path visualizer ----------------------------------------------
             // TODO: We may want to consider moving this to the ShadeBundleHandler instead so that
@@ -524,7 +535,17 @@ rayBundleHandler(mcrt_common::ThreadLocalState *tls, unsigned numEntries,
     }
 
     // Check if rays which didn't intersect anything hit any lights in the scene.
-    if (sortedEntries->mSortKey == 0) {
+    //
+    // The numSortedEntries test is not redundant: when *every* ray in the
+    // bundle hit geometry with no material - which is what a scene whose only
+    // geometry is a volume looks like, since a volume is shaded by its
+    // VolumeShader and has no material - nothing was written to
+    // `sortedEntries`, and reading `sortedEntries->mSortKey` here reads
+    // uninitialized arena memory. When that garbage happened to be zero, the
+    // scan below walked past `endEntry` (which is `sortedEntries` itself in
+    // that case) and the shade loop then ran on garbage ray-state indices:
+    // a crash in a release build, and undefined behaviour in any build.
+    if (numSortedEntries > 0 && sortedEntries->mSortKey == 0) {
 
         SortedEntry *spanEnd = sortedEntries + 1;
         while (spanEnd != endEntry && spanEnd->mSortKey == 0) {

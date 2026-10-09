@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Sample.h"
+#include <moonray/rendering/pbr/sampler/Sample.h>
 #include <scene_rdl2/render/util/AlignedAllocator.h>
 #include <scene_rdl2/render/util/Random.h>
 #include <scene_rdl2/common/platform/Platform.h>

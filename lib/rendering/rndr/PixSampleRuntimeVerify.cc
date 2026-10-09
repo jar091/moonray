@@ -3,8 +3,8 @@
 
 //
 //
-#include "PixSampleRuntimeVerify.h"
-#include "SampleIdBuff.h"
+#include <moonray/rendering/rndr/PixSampleRuntimeVerify.h>
+#include <moonray/rendering/rndr/SampleIdBuff.h>
 
 #include <scene_rdl2/render/util/StrUtil.h>
 

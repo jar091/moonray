@@ -45,6 +45,11 @@ target_link_libraries(${component}
         Random123::Random123
 )
 
+if(IsWindowsPlatform)
+    # ProcessStats.cc: GetProcessMemoryInfo() (the /proc/self/statm equivalent)
+    target_link_libraries(${component} PRIVATE psapi)
+endif()
+
 # If at Dreamworks add a SConscript stub file so others can use this library.
 SConscript_Stub(${component})
 

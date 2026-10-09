@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "ColorRampLightFilter.h"
+#include <moonray/rendering/pbr/lightfilter/ColorRampLightFilter.h>
 
 #include <moonray/rendering/pbr/lightfilter/ColorRampLightFilter_ispc_stubs.h>
 #include <moonray/rendering/shading/ispc/RampControl_ispc_stubs.h>

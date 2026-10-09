@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Bsdf.h"
+#include <moonray/rendering/shading/bsdf/Bsdf.h>
 
 #include <moonray/rendering/shading/ispc/bsdf/BsdfSlice_ispc_stubs.h>
 

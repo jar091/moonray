@@ -6,8 +6,8 @@
 /// $Id$
 ///
 
-#include "BsdfFabric.h"
-#include "VelvetAlbedo.h"
+#include <moonray/rendering/shading/bsdf/fabric/BsdfFabric.h>
+#include <moonray/rendering/shading/bsdf/fabric/VelvetAlbedo.h>
 
 #include <moonray/rendering/shading/ispc/bsdf/fabric/BsdfFabricVelvet_ispc_stubs.h>
 

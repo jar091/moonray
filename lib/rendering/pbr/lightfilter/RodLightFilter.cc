@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "RodLightFilter.h"
+#include <moonray/rendering/pbr/lightfilter/RodLightFilter.h>
 #include <moonray/rendering/pbr/core/Util.h>
 #include <moonray/rendering/pbr/lightfilter/RodLightFilter_ispc_stubs.h>
 #include <moonray/rendering/shading/ispc/RampControl_ispc_stubs.h>

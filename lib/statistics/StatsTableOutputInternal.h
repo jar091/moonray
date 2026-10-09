@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CountingStream.h"
-#include "Formatters.h"
+#include <moonray/statistics/Formatters.h>
 #include "IOSFlags.h"
 #include "integer_sequence.h"
-#include "StatsTable.h"
+#include <moonray/statistics/StatsTable.h>
 #include "TableFlags.h"
 #include "Util.h"
 
@@ -40,7 +40,9 @@ HeaderRowContainer<N> splitHeaders(const StringList<N>& basicHeaders)
     HeaderRowContainer<N> headers;
 
     if (std::any_of(basicHeaders.cbegin(), basicHeaders.cend(),
-                    [](const std::string& h) {
+                    // captured explicitly: MSVC does not accept the implicit
+                    // (non-odr) use of the const local inside a template
+                    [maxHeaderLength](const std::string& h) {
                         return h.length() > maxHeaderLength;
                     })) {
         // Split headers into multiple lines

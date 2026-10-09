@@ -5,7 +5,7 @@
 /// @file VdbVolume.cc
 ///
 
-#include "VdbVolume.h"
+#include <moonray/rendering/geom/prim/VdbVolume.h>
 
 #include <moonray/rendering/geom/prim/VolumeSampleInfo.h>
 #include <moonray/rendering/geom/prim/VolumeTransition.h>
@@ -686,8 +686,11 @@ VdbVolume::getIntersectionMaterial(const scene_rdl2::rdl2::Layer *pRdlLayer,
                                    const mcrt_common::Ray &ray) const
 {
     int layerAssignmentId = getIntersectionAssignmentId(ray.primID);
-    const scene_rdl2::rdl2::Material *pMaterial = MNRY_VERIFY(pRdlLayer->lookupMaterial(layerAssignmentId));
-    return pMaterial;
+    // A volume is shaded by its VolumeShader, so a null material is the
+    // normal case here, not a programming error: MNRY_VERIFY would assert on
+    // it in a debug build and compile away in a release one, leaving the
+    // caller to dereference the null (see RayHandlers.cc).
+    return pRdlLayer->lookupMaterial(layerAssignmentId);
 }
 
 scene_rdl2::math::Vec3f

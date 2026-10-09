@@ -3,9 +3,11 @@
 
 //
 
-#include "Xform.h"
+#include <moonray/rendering/shading/Xform.h>
 
 #include <moonray/rendering/shading/State.h>
+
+#include <array>   // rdl2::Camera::computeProjectionMatrix() takes a std::array
 
 using namespace scene_rdl2;
 

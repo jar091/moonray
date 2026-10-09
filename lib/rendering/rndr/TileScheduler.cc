@@ -10,8 +10,8 @@
 //   that detiling should be done on the merge node (eventually).
 // - No explicit cropping is neccessary since this is handled in the extrapolation passes.
 //
-#include "TileScheduler.h"
-#include "Film.h"
+#include <moonray/rendering/rndr/TileScheduler.h>
+#include <moonray/rendering/rndr/Film.h>
 #include <scene_rdl2/render/util/Arena.h>
 #include <scene_rdl2/render/util/Random.h>
 #include <random>

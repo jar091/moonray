@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "GeomTLState.h"
+#include <moonray/rendering/geom/prim/GeomTLState.h>
 
 namespace moonray {
 namespace geom {

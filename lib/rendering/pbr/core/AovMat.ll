@@ -8,6 +8,14 @@
 
 %option noyywrap
 
+/* flex's skeleton includes <unistd.h> and calls isatty() on the input file,
+ * neither of which MSVC has. This scanner never touches yyin: YY_INPUT below
+ * is redefined to pull characters from the string being parsed, so the input
+ * is by definition not a terminal. nounistd drops the include and
+ * never-interactive drops the isatty() call. */
+%option nounistd
+%option never-interactive
+
 %{
 /* bison forces the header to be .hh if the parser code extension is .cc */
 #include "AovMatParser.hh"

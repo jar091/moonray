@@ -7,7 +7,7 @@
 ///
 
 
-#include "BsdfHairOneSampler.h"
+#include <moonray/rendering/shading/bsdf/hair/BsdfHairOneSampler.h>
 #include <moonray/rendering/shading/bsdf/BsdfSlice.h>
 #include <moonray/rendering/shading/Util.h>
 

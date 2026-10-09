@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include "ProfileAccumulatorHandles.h"
-#include "ThreadLocalState.hh"
-#include "Types.h"
+#include <moonray/rendering/mcrt_common/ProfileAccumulatorHandles.h>
+#include <moonray/rendering/mcrt_common/ThreadLocalState.hh>
+#include <moonray/rendering/mcrt_common/Types.h>
 #include <scene_rdl2/render/util/Arena.h>
 #include <scene_rdl2/render/util/MemPool.h>
 #include <memory>

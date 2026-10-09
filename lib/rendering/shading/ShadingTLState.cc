@@ -1,9 +1,10 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "ShadingTLState.h"
+#include <moonray/rendering/shading/ShadingTLState.h>
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
-#include <tbb/mutex.h>
+
+#include <mutex>
 
 namespace ispc {
 extern "C" uint32_t ShadingTLState_hudValidation(bool);
@@ -33,7 +34,7 @@ struct Private
 };
 
 Private gPrivate;
-tbb::mutex gInitMutex;
+std::mutex gInitMutex;
 
 void
 initPrivate(const mcrt_common::TLSInitParams &initParams)
@@ -71,7 +72,7 @@ TLState::~TLState()
 
     {
         // Protect against races the during gPrivate clean up.
-        //tbb::mutex::scoped_lock lock(gInitMutex);
+        //std::lock_guard<std::mutex> lock(gInitMutex);
 
         MOONRAY_THREADSAFE_STATIC_WRITE(--gPrivate.mRefCount);
         if (gPrivate.mRefCount == 0) {
@@ -97,7 +98,7 @@ TLState::allocTls(mcrt_common::ThreadLocalState *tls,
 {
     {
         // Protect against races the very first time we initialize gPrivate.
-        tbb::mutex::scoped_lock lock(gInitMutex);
+        std::lock_guard<std::mutex> lock(gInitMutex);
 
         if (gPrivate.mRefCount == 0) {
             texture::TLState::initPrivate(initParams);

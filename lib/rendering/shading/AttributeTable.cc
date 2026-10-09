@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "AttributeTable.h"
+#include <moonray/rendering/shading/AttributeTable.h>
 
 #include <scene_rdl2/render/util/BitUtils.h>
 #include <scene_rdl2/render/util/Memory.h>

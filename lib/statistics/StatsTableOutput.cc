@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "StatsTableOutput.h"
+#include <moonray/statistics/StatsTableOutput.h>
 
 namespace moonray_stats {
 namespace internal {

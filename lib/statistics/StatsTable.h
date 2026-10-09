@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Formatters.h"
+#include <moonray/statistics/Formatters.h>
 
 #include <algorithm>
 #include <array>

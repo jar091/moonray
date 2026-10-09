@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "XPURayHandlers.h"
+#include <moonray/rendering/pbr/handlers/XPURayHandlers.h>
 
 #include "RayHandlerUtils.h"
 #include <moonray/rendering/pbr/core/Aov.h>
@@ -435,7 +435,18 @@ xpuRayBundleHandler(mcrt_common::ThreadLocalState *tls,
                 static_cast<geom::internal::BVHUserData*>(ray.ext.userData);
             const geom::internal::Primitive* prim = userData->mPrimitive;
             const scene_rdl2::rdl2::Material *rdl2Material = MNRY_VERIFY(prim)->getIntersectionMaterial(layer, ray);
-            const shading::Material *material = &rdl2Material->get<const shading::Material>();
+            // A hit point without a material is legal - a volume is shaded by
+            // its VolumeShader, and MoonRay's own example scenes leave the
+            // material of a volume assignment undefined - and the `if
+            // (material)` below is written for exactly that case. The
+            // dereference has to come *after* the check, not before it: with a
+            // null material this took the address of a member of a null
+            // object, which is undefined behaviour and crashes a release
+            // build (MNRY_VERIFY inside getIntersectionMaterial compiles away
+            // there, so nothing catches it earlier).
+            const shading::Material *material = rdl2Material
+                ? &rdl2Material->get<const shading::Material>()
+                : nullptr;
 
             if (material) {
                 // perform material substitution if needed

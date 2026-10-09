@@ -4,7 +4,7 @@
 /// @file AovLabels.h
 #pragma once
 
-#include "AovLabels.hh"
+#include <moonray/rendering/shading/AovLabels.hh>
 
 #include <vector>
 

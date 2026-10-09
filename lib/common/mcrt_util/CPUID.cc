@@ -3,7 +3,7 @@
 
 #if !defined(__APPLE__)
 
-#include "CPUID.h"
+#include <moonray/common/mcrt_util/CPUID.h>
 
 namespace moonray {
 namespace util {

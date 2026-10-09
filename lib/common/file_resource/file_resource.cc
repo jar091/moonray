@@ -3,7 +3,7 @@
 
 //
 
-#include "file_resource.h"
+#include <moonray/common/file_resource/file_resource.h>
 
 #include "UNIXFileResource.h"
 

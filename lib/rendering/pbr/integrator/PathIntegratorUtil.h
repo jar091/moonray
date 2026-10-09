@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "BsdfSampler.h"
-#include "LightSetSampler.h"
+#include <moonray/rendering/pbr/integrator/BsdfSampler.h>
+#include <moonray/rendering/pbr/integrator/LightSetSampler.h>
 
 #include <moonray/rendering/pbr/core/RayState.h>
 #include <moonray/rendering/pbr/core/Scene.h>

@@ -1,7 +1,7 @@
 // Copyright 2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "FisheyeCamera.h"
+#include <moonray/rendering/pbr/camera/FisheyeCamera.h>
 
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <scene_rdl2/scene/rdl2/rdl2.h>

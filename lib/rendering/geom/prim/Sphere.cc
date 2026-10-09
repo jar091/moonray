@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Sphere.h"
+#include <moonray/rendering/geom/prim/Sphere.h>
 
 #include <moonray/rendering/geom/prim/BVHUserData.h>
 #include <moonray/rendering/geom/prim/Util.h>

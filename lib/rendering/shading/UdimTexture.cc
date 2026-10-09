@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "UdimTexture.h"
+#include <moonray/rendering/shading/UdimTexture.h>
 
 #include <moonray/rendering/shading/Shading.h>
 #include <moonray/rendering/shading/Texture.h>
@@ -24,12 +24,16 @@
 
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
-#include <tbb/mutex.h>
 
 #include <algorithm>
+#if defined(_WIN32)
+#include <filesystem>
+#else
 #include <dirent.h>
 #include <glob.h>
+#endif
 #include <memory>
+#include <mutex>
 #include <vector>
 
 namespace moonray {
@@ -95,6 +99,42 @@ getUdimFilenames(const std::string& filename,
                  std::vector<std::string>& filenames)
 {
     size_t udimPos = filename.find("<UDIM>");
+
+#if defined(_WIN32)
+
+    // The UCRT has no glob(). The pattern is always "<prefix>*", i.e. a plain
+    // prefix match within a single directory, so a directory scan is an exact
+    // equivalent; the results are sorted to match glob()'s sorted output, and
+    // "no match" is reported as failure like glob()'s GLOB_NOMATCH.
+    // (GLOB_TILDE's leading-"~" home expansion has no Windows counterpart and
+    // is not part of any UDIM path.)
+    const std::filesystem::path prefixPath(filename.substr(0, udimPos));
+    const std::filesystem::path dir =
+        prefixPath.has_parent_path() ? prefixPath.parent_path() : std::filesystem::path(".");
+    const std::string stem = prefixPath.filename().string();
+
+    std::error_code ec;
+    std::filesystem::directory_iterator it(dir, ec);
+    if (ec) {
+        return false;
+    }
+
+    std::vector<std::string> matches;
+    for (const auto& entry : it) {
+        if (entry.path().filename().string().compare(0, stem.size(), stem) == 0) {
+            matches.push_back(entry.path().string());
+        }
+    }
+    if (matches.empty()) {
+        return false;
+    }
+    std::sort(matches.begin(), matches.end());
+    filenames.insert(filenames.end(), matches.begin(), matches.end());
+
+    return true;
+
+#else
+
     const std::string pattern = filename.substr(0, udimPos) + "*";
 
     glob_t glob_result;
@@ -113,6 +153,8 @@ getUdimFilenames(const std::string& filename,
     globfree(&glob_result);
 
     return true;
+
+#endif // end of !_WIN32
 }
 
 } // namespace
@@ -154,8 +196,8 @@ public:
         // to allow for the possibility that we may someday create image maps
         // on multiple threads, we'll protect the writes of the class statics
         // with a mutex.
-        static tbb::mutex errorMutex;
-        tbb::mutex::scoped_lock lock(errorMutex);
+        static std::mutex errorMutex;
+        std::lock_guard<std::mutex> lock(errorMutex);
         MOONRAY_START_THREADSAFE_STATIC_WRITE
 
         mIspc.mUdimTextureStaticDataPtr = &sUdimTextureStaticData;
@@ -277,7 +319,7 @@ public:
         mIspc.mApplyGamma = applyGamma;
         mIspc.mIs8bit = mIs8bit;
 
-        tbb::mutex errorMutex;
+        std::mutex errorMutex;
 
         tbb::blocked_range<int> range(0, mTextureHandleIndices.size());
         tbb::parallel_for(range, [&] (const tbb::blocked_range<int> &r) {

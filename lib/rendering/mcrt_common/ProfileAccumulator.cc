@@ -3,7 +3,7 @@
 
 //
 //
-#include "ProfileAccumulator.h"
+#include <moonray/rendering/mcrt_common/ProfileAccumulator.h>
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <scene_rdl2/render/logging/logging.h>
 

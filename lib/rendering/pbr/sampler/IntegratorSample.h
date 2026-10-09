@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "Sampler.h"
-#include "SamplingConstants.h"
-#include "SlidingWindowCache.h"
+#include <moonray/rendering/pbr/sampler/Sampler.h>
+#include <moonray/rendering/pbr/sampler/SamplingConstants.h>
+#include <moonray/rendering/pbr/sampler/SlidingWindowCache.h>
 
 #include <moonray/common/mcrt_util/StatelessRandomEngine.h>
 

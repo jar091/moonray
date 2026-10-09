@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "PrimitiveAttribute.h"
+#include <moonray/rendering/shading/PrimitiveAttribute.h>
 
 namespace moonray {
 namespace shading {

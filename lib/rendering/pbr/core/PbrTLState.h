@@ -4,7 +4,7 @@
 
 #include "PbrTLState.hh"
 
-#include "Statistics.h"
+#include <moonray/rendering/pbr/core/Statistics.h>
 #include <moonray/rendering/mcrt_common/Bundle.h>
 #include <moonray/rendering/mcrt_common/ProfileAccumulator.h>
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>
@@ -234,6 +234,18 @@ finline void forEachTLS(Body const &body)
 // Not thread safe. This takes care of reseting the
 // ray state and memory pool allocators
 void resetPools();
+
+/// Predicate answering "has the current render been canceled?".
+///
+/// The render driver that owns the cancellation flag lives in
+/// `rendering_rndr`, which links this library; calling into it directly would
+/// close a library cycle. So the C entry point `isRenderCanceled()` - which
+/// both this library's C++ and its ISPC code call - is defined here and
+/// dispatches through a predicate that `rendering_rndr` installs. With none
+/// installed the render is never canceled, which is the state before a render
+/// driver exists.
+using RenderCanceledFn = bool (*)();
+void setRenderCanceledCallback(RenderCanceledFn fn);
 
 // Value returned when allocList fails
 const uint32_t nullHandle = PBR_TL_STATE_NULL_HANDLE;

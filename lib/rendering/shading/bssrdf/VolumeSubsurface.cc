@@ -3,7 +3,7 @@
 
 /// @file VolumeSubsurface.cc
 
-#include "VolumeSubsurface.h"
+#include <moonray/rendering/shading/bssrdf/VolumeSubsurface.h>
 
 #include <moonray/rendering/shading/PbrValidity.h>
 

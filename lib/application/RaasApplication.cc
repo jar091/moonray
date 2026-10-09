@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "RaasApplication.h"
+#include <moonray/application/RaasApplication.h>
 #include "ChangeWatcher.h"
 
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
@@ -32,10 +32,19 @@
 #include <limits>
 #include <stdint.h>
 #include <string>
-#include <sys/ioctl.h>
 #include <signal.h>
 #include <time.h>
+#ifdef _WIN32
+#include <io.h>                 // _isatty
+#include <windows.h>            // GetConsoleScreenBufferInfo
+// There is no fixed descriptor number on Windows; _fileno(stdout) is the
+// equivalent of the POSIX STDOUT_FILENO constant.
+#define isatty _isatty
+#define STDOUT_FILENO _fileno(stdout)
+#else
+#include <sys/ioctl.h>
 #include <unistd.h>
+#endif
 
 // In seconds.
 #define LOG_PROGRESS_TIME_INTERVAL  60.0
@@ -169,15 +178,26 @@ RaasApplication::printStatusLine(rndr::RenderContext& renderContext, double star
     if (isatty(STDOUT_FILENO)) {
 
         // Get the terminal width.
+#ifdef _WIN32
+        // srWindow, not dwSize, is the analogue of ws_col: dwSize is the whole
+        // scroll-back buffer (same mapping as statistics/Util.cc, M17).
+        int termWidth = 0;
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+            termWidth = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        }
+#else
         winsize win;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &win);
+        int termWidth = win.ws_col;
+#endif
 
-        if (win.ws_col == 0) {
-            win.ws_col = 80; // situation like emacs shell
+        if (termWidth <= 0) {
+            termWidth = 80; // situation like emacs shell
         }
 
         // Compute progress bar layout.
-        int barWidth = win.ws_col
+        int barWidth = termWidth
                        - 6  // "  [/] " (spinner)
                        - 9  // "Rendering"
                        - 4  // " [" + "] " (bar borders and spacing)

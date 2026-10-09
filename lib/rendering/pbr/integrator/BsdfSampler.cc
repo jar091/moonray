@@ -7,7 +7,7 @@
 ///
 
 
-#include "BsdfSampler.h"
+#include <moonray/rendering/pbr/integrator/BsdfSampler.h>
 
 #include <scene_rdl2/render/util/Arena.h>
 #include <scene_rdl2/render/util/BitUtils.h>

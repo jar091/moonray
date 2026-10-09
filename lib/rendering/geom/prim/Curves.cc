@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Curves.h"
+#include <moonray/rendering/geom/prim/Curves.h>
 
 #include <moonray/rendering/geom/prim/GeomTLState.h>
 #include <moonray/rendering/geom/prim/MeshTessellationUtil.h>

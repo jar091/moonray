@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "AttributeKey.h"
+#include <moonray/rendering/shading/AttributeKey.h>
 
 #include <moonray/common/mcrt_util/StringPool.h>
 #include <type_traits>

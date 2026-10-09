@@ -4,7 +4,7 @@
 ///
 /// @file PrimitiveUserData.cc
 
-#include "PrimitiveUserData.h"
+#include <moonray/rendering/geom/PrimitiveUserData.h>
 
 #include <scene_rdl2/scene/rdl2/UserData.h>
 #include <scene_rdl2/render/logging/logging.h>

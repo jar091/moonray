@@ -9,6 +9,7 @@
 #include <scene_rdl2/render/util/GUID.h>
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 #include <streambuf>
@@ -73,7 +74,14 @@ private:
     // the asynchronous data it is receiving simultaneously from varying renders.
     std::string mDwaGacId;
 
+#ifdef _WIN32
+    // Winsock's SOCKET is an unsigned UINT_PTR handle, not a file descriptor.
+    // Spelled as uintptr_t so this installed header stays free of <winsock2.h>;
+    // AthenaCSVStream.cc static_asserts that the two agree.
+    std::uintptr_t mSocket;
+#else
     int mSocket;
+#endif
     std::string mIdent;
     bool mOpened;
 };

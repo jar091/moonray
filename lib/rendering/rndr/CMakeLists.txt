@@ -9,8 +9,19 @@ set(exportGroup ${PROJECT_NAME}Targets)
 add_library(${component} SHARED "")
 add_library(${PROJECT_NAME}::${component} ALIAS ${component})
 
+# The TCP debug console (RenderContextConsoleDriver -> grid_util TlSvr +
+# ShmFbOutput) is built on POSIX sockets and shared memory. It is an opt-in
+# debug feature (SceneVariables::sDebugConsole); RenderContext.cc reports it
+# as unavailable when the platform excludes it, rather than silently ignoring
+# the request.
+if(IsLinuxPlatform)
+    set(PlatformSpecificSources RenderContextConsoleDriver.cc)
+    set(PlatformSpecificHeaders RenderContextConsoleDriver.h)
+endif()
+
 target_sources(${component}
     PRIVATE
+        ${PlatformSpecificSources}
         statistics/AthenaCSVStream.cc
         statistics/SocketStream.cc
         adaptive/AdaptiveRegions.cc
@@ -34,7 +45,6 @@ target_sources(${component}
         PixSampleRuntimeVerify.cc
         ProcKeeper.cc
         RenderContext.cc
-        RenderContextConsoleDriver.cc
         RenderDriver.cc
         RenderDriverCheckpointUtil.cc
         RenderDriverSnapshotDelta.cc
@@ -72,7 +82,7 @@ set_property(TARGET ${component}
         PathVisualizerManager.h
         PixelBufferUtils.h
         RenderContext.h
-        RenderContextConsoleDriver.h
+        ${PlatformSpecificHeaders}
         RenderPrepExecTracker.h
         RenderProgressEstimation.h
         RenderOptions.h
@@ -99,8 +109,15 @@ if(IsDarwinPlatform)
     set_target_properties(${component} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 endif()
 
-if (NOT IsDarwinPlatform)
+# libatomic is a GCC runtime library: neither Darwin nor MSVC has it.
+if (IsLinuxPlatform)
     set(PlatformSpecificLibs atomic)
+endif()
+
+# statistics/SocketStream.cc and statistics/AthenaCSVStream.cc use Winsock2 for
+# the BSD socket API the other platforms get from libc.
+if (IsWindowsPlatform)
+    set(PlatformSpecificLibs ws2_32)
 endif()
 
 target_link_libraries(${component}

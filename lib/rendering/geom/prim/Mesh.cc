@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Mesh.h"
+#include <moonray/rendering/geom/prim/Mesh.h>
 
 #include <moonray/rendering/geom/prim/Instance.h>
 #include <moonray/rendering/geom/prim/MotionTransform.h>
@@ -305,7 +305,7 @@ Mesh::createVelocityGrid(const float interiorBandwidth,
 }
 
 bool
-Mesh::faceHasAssignment(uint faceId)
+Mesh::faceHasAssignment(unsigned int faceId)
 {
     // check if the part this face belongs to has the material assigned
     int assignmentId = mLayerAssignmentId.getType() == LayerAssignmentId::Type::CONSTANT ?

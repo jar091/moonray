@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "BarnDoorLightFilter.h"
+#include <moonray/rendering/pbr/lightfilter/BarnDoorLightFilter.h>
 
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/rendering/pbr/core/Util.h>

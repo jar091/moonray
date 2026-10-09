@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "MeshLight.h"
+#include <moonray/rendering/pbr/light/MeshLight.h>
 #include <moonray/rendering/pbr/core/RayState.h>
 #include <moonray/rendering/pbr/core/Util.h>
 
@@ -1255,7 +1255,11 @@ MeshLight::buildBVHRecurse(const scene_rdl2::math::BBox3f& bbox, std::vector<Fac
             // The number of candidate splits is splitsCount. We compute the
             // cost of each candidate split and keep the minimum cost.
             int splitsCount = bucketsCount - 1;
-            SplitCost costs[splitsCount];
+            // sized by the same compile-time bucket count that governs
+            // buckets[]/finalBuckets[] above (bucketsCount <= sBucketsCount),
+            // because variable-length arrays are a GCC extension; only the
+            // first splitsCount entries are used
+            SplitCost costs[sBucketsCount - 1];
 
             // Fill in the splitCost structs
             costs[0].mLeftEnergy = finalBuckets[0].mEnergy;

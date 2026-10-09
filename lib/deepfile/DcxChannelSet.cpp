@@ -2,13 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "DcxChannelAlias.h"
-#include "DcxChannelContext.h"
-#include "DcxChannelSet.h"
+#include <moonray/deepfile/DcxChannelContext.h>
+#include <moonray/deepfile/DcxChannelSet.h>
 #include "DcxChannelDefs.h"
 
 #include <map>
 #include <algorithm> // for std::sort in some compilers
 #include <string.h> // for strcmp in some compilers
+
+#if defined(_MSC_VER)
+// MSVC's UCRT spells the case-insensitive compare _stricmp; strcasecmp is POSIX.
+#define strcasecmp _stricmp
+#endif
 
 
 OPENDCX_INTERNAL_NAMESPACE_HEADER_ENTER

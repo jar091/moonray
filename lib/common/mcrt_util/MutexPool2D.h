@@ -8,7 +8,8 @@
 #include <scene_rdl2/common/platform/Platform.h>
 #include <scene_rdl2/render/util/BitUtils.h>
 
-#include <tbb/mutex.h>
+#include <array>
+#include <mutex>
 
 namespace moonray {
     constexpr int getMutexCount(int log2MutexCount)
@@ -55,7 +56,7 @@ namespace moonray {
     }
 #endif
 
-    template <int sLog2MutexCount, typename MutexType = tbb::mutex>
+    template <int sLog2MutexCount, typename MutexType = std::mutex>
     class MutexPool2D
     {
     public:

@@ -7,8 +7,8 @@
 ///
 
 
-#include "BsdfCookTorrance.h"
-#include "energy_compensation/TransmissionCookTorranceEnergyCompensation.h"
+#include <moonray/rendering/shading/bsdf/cook_torrance/BsdfCookTorrance.h>
+#include <moonray/rendering/shading/bsdf/cook_torrance/energy_compensation/TransmissionCookTorranceEnergyCompensation.h>
 #include <moonray/rendering/shading/bsdf/Fresnel.h>
 #include <scene_rdl2/common/math/MathUtil.h>
 #include <moonray/rendering/shading/Util.h>

@@ -3,7 +3,7 @@
 
 /// @file EvalShader.cc
 
-#include "BsdfLabels.h"
+#include <moonray/rendering/shading/ispc/BsdfLabels.h>
 
 namespace moonray {
 namespace shading {

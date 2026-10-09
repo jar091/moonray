@@ -5,8 +5,8 @@
 
 #include <moonray/rendering/pbr/core/Scene.h>
 
-#include "Aov.h"
-#include "PbrTLState.h"
+#include <moonray/rendering/pbr/core/Aov.h>
+#include <moonray/rendering/pbr/core/PbrTLState.h>
 
 #include <moonray/rendering/shading/AttributeKey.h>
 #include <moonray/rendering/pbr/camera/Camera.h>

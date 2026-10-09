@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Aov.h"
+#include <moonray/rendering/pbr/core/Aov.h>
 #include <moonray/rendering/mcrt_common/ExecutionMode.h>
 #include <moonray/rendering/mcrt_common/Ray.h>
 #include <moonray/rendering/pbr/light/LightAccelerator.h>

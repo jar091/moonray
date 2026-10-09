@@ -61,6 +61,14 @@ Moonray_cxx_compile_features(${component})
 Moonray_cxx_compile_options(${component})
 Moonray_link_options(${component})
 
+# DcxAPI.h documents this: DCX_EXPORT is __declspec(dllexport) while the
+# library itself is compiled and __declspec(dllimport) for its consumers.
+# PRIVATE, so only this target exports; without it every member definition
+# in the headers is a "definition of dllimport function" error (C2491).
+if(IsWindowsPlatform)
+    target_compile_definitions(${component} PRIVATE DWA_OPENDCX_EXPORTS)
+endif()
+
 # -------------------------------------
 # Install the target and the export set
 # -------------------------------------

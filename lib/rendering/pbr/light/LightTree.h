@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include "Light.h"
-#include "LightTreeUtil.h"
+#include <moonray/rendering/pbr/light/Light.h>
+#include <moonray/rendering/pbr/light/LightTreeUtil.h>
 #include "LightTree.hh"
-#include "MeshLight.h"
+#include <moonray/rendering/pbr/light/MeshLight.h>
 
 namespace moonray {
 namespace pbr {

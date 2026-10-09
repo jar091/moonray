@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Primitive.h"
+#include <moonray/rendering/geom/prim/Primitive.h>
 
 #include <moonray/rendering/geom/prim/VolumeAssignmentTable.h>
 

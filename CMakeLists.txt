@@ -92,7 +92,8 @@ if(${Amorphous_FOUND})
     set(${PROJECT_NAME_UPPER}_BUILD_AMORPHOUS_VOLUME YES)
 endif()
 
-if(NOT IsDarwinPlatform)
+# libatomic is a GCC runtime library: neither Darwin nor MSVC has it.
+if(IsLinuxPlatform)
     find_package(Libatomic REQUIRED)
 endif()
 
@@ -171,7 +172,22 @@ endif()
 
 # Create include/${PACKAGE_NAME} link in the build directory for generated headers.
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
-file(CREATE_LINK ../lib ${PROJECT_BINARY_DIR}/include/${PACKAGE_NAME} SYMBOLIC)
+if(WIN32)
+    # Symbolic links need privileges (or Developer Mode) on Windows; an NTFS
+    # directory junction provides the same aliasing without either.
+    if(NOT EXISTS ${PROJECT_BINARY_DIR}/include/${PACKAGE_NAME})
+        file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+        file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/include/${PACKAGE_NAME}" _linkNative)
+        file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/lib" _targetNative)
+        execute_process(COMMAND cmd /c mklink /J "${_linkNative}" "${_targetNative}"
+            OUTPUT_QUIET RESULT_VARIABLE _junctionResult)
+        if(NOT _junctionResult EQUAL 0)
+            message(FATAL_ERROR "Failed to create junction ${_linkNative} -> ${_targetNative}")
+        endif()
+    endif()
+else()
+    file(CREATE_LINK ../lib ${PROJECT_BINARY_DIR}/include/${PACKAGE_NAME} SYMBOLIC)
+endif()
 
 include(${PROJECT_NAME}CompileDefinitions)
 include(${PROJECT_NAME}CompileFeatures)

@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Sphere.h"
+#include <moonray/rendering/geom/Sphere.h>
 
 #include <moonray/rendering/geom/PrimitiveVisitor.h>
 

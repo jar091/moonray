@@ -3,7 +3,7 @@
 
 /// @file Shadingv.cc
 
-#include "Shadingv.h"
+#include <moonray/rendering/shading/ispc/Shadingv.h>
 
 #include <moonray/rendering/shading/ispc/BsdfLabels.h>
 

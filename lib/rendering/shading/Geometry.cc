@@ -3,7 +3,7 @@
 
 /// @file Geometry.cc
 
-#include "Geometry.h"
+#include <moonray/rendering/shading/Geometry.h>
 
 namespace moonray {
 namespace shading {

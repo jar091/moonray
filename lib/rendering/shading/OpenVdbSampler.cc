@@ -5,7 +5,7 @@
 /// @file OpenVdbSampler.cc
 ///
 
-#include "OpenVdbSampler.h"
+#include <moonray/rendering/shading/OpenVdbSampler.h>
 
 #include <moonray/rendering/shading/ShadingTLState.h>
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>

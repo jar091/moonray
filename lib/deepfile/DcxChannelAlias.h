@@ -14,7 +14,7 @@
 //
 //=============================================================================
 
-#include "DcxChannelSet.h"
+#include <moonray/deepfile/DcxChannelSet.h>
 
 #include <vector>
 #include <map>

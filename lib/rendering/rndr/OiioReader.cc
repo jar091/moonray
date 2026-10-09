@@ -3,7 +3,7 @@
 
 //
 //
-#include "OiioReader.h"
+#include <moonray/rendering/rndr/OiioReader.h>
 
 namespace moonray {
 namespace rndr {

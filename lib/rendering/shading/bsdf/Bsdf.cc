@@ -6,9 +6,9 @@
 /// $Id$
 ///
 
-#include "Bsdf.h"
+#include <moonray/rendering/shading/bsdf/Bsdf.h>
 #include <moonray/rendering/shading/bssrdf/Bssrdf.h>
-#include "BsdfSlice.h"
+#include <moonray/rendering/shading/bsdf/BsdfSlice.h>
 
 namespace moonray {
 namespace shading {

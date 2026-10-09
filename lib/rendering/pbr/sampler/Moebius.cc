@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "Moebius.hh"
+#include <moonray/rendering/pbr/sampler/Moebius.hh>
 
 // We distribute values in 1-dimension as a multiple of _alpha_ in mod 1 space. _alpha_ can be taken to be inverse of
 // The Golden Ratio, phi (the most irrational number), but there are other values of _alpha_ that achieve optimal
@@ -43,7 +43,11 @@ for s in values:
         print()
 ********************************/
 
-constexpr float moebiusTransformationValues[kMoebiusTransformationSize] =
+// Spelled exactly as declared in Moebius.hh: a namespace-scope constexpr
+// variable is const and therefore internal-linkage by default, which MSVC
+// rejects as a storage-class change against the extern "C" declaration
+// (C2370). The table is only ever read at run time, so const is enough.
+extern "C" const float moebiusTransformationValues[kMoebiusTransformationSize] =
 {
      0.8737493030104559f,   1.3209205803858595f,   1.2824170425260633f,   1.4311535152670842f,   4.0567600221817344f,   4.0485012295811345f,   4.2763932022500200f,   5.2763932022500200f,
      6.2763932022500200f,   9.2763932022500200f,  10.2763932022500200f,   4.4692043664332459f,   5.8687325363109721f,   9.8687325363109721f,  11.8687325363109721f,  12.8687325363109721f,

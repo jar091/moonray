@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "OpenVdbUtil.h"
+#include <moonray/rendering/shading/OpenVdbUtil.h>
 
 #include <scene_rdl2/common/except/exceptions.h>
 

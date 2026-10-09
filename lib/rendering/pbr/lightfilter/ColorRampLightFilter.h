@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "LightFilter.h"
+#include <moonray/rendering/pbr/lightfilter/LightFilter.h>
 
 #include <moonray/rendering/shading/RampControl.h>
 #include <scene_rdl2/common/math/Color.h>

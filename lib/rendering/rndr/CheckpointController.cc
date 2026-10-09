@@ -1,12 +1,18 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "CheckpointController.h"
-#include "ImageWriteDriver.h"
-#include "RenderContext.h"
-#include "RenderOutputDriver.h"
+#include <moonray/rendering/rndr/CheckpointController.h>
+#include <moonray/rendering/rndr/ImageWriteDriver.h>
+#include <moonray/rendering/rndr/RenderContext.h>
+#include <moonray/rendering/rndr/RenderOutputDriver.h>
 
 #include <scene_rdl2/render/util/StrUtil.h>
+#ifdef _WIN32
+// Put back the empty `far` / `near` macros scene_rdl2's DebugLog.h #undefs:
+// <winsock2.h>, reached through TimeUtil.h, still spells its pointers `FAR *`.
+#define far
+#define near
+#endif
 #include <scene_rdl2/render/util/TimeUtil.h>
 
 #include <iomanip>

@@ -5,7 +5,7 @@
 /// @file LineSegments.cc
 ///
 
-#include "LineSegments.h"
+#include <moonray/rendering/geom/prim/LineSegments.h>
 
 #include <moonray/rendering/geom/prim/Instance.h>
 #include <moonray/rendering/geom/prim/MotionTransform.h>
@@ -366,7 +366,7 @@ LineSegments::computeIntersectCurvature(const mcrt_common::Ray& ray,
     uint32_t id1, id2, id3;
     intersection.getIds(id1, id2, id3);
 
-    const uint vertexOffset = id1;
+    const unsigned int vertexOffset = id1;
 
     Vec3fa cv0, cv1;
     if (!isMotionBlurOn()) {

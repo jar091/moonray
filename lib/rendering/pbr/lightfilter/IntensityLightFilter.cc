@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "IntensityLightFilter.h"
+#include <moonray/rendering/pbr/lightfilter/IntensityLightFilter.h>
 
 #include <moonray/rendering/pbr/lightfilter/IntensityLightFilter_ispc_stubs.h>
 #include <moonray/common/mcrt_macros/moonray_static_check.h>

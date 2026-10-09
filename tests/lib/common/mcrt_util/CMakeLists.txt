@@ -14,7 +14,8 @@ target_sources(${target}
         test_wait.cc
 )
 
-if (NOT IsDarwinPlatform)
+# libatomic is a GCC runtime library: neither Darwin nor MSVC has it.
+if (IsLinuxPlatform)
     set(PlatformSpecificLibs atomic)
 endif()
 

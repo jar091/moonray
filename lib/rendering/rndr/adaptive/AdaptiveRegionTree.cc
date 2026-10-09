@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "AdaptiveRegionTree.h"
+#include <moonray/rendering/rndr/adaptive/AdaptiveRegionTree.h>
 
 #include <scene_rdl2/common/fb_util/FbTypes.h>
 #include <scene_rdl2/common/fb_util/Tiler.h>

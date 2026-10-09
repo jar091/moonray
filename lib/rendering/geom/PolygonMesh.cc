@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "PolygonMesh.h"
+#include <moonray/rendering/geom/PolygonMesh.h>
 
 #include <moonray/rendering/geom/PrimitiveVisitor.h>
 #include <moonray/rendering/geom/ProceduralContext.h>

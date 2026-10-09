@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Log.h"
+#include <moonray/rendering/shading/Log.h>
 
 #include <moonray/rendering/shading/ThreadLocalObjectState.h>
 #include <moonray/rendering/mcrt_common/Util.h>

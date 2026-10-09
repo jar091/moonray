@@ -102,7 +102,7 @@ buffer in its destructor which helps prevent GPU memory leaks.
 
 #pragma once
 
-#include "GPURay.h"
+#include <moonray/rendering/rt/gpu/GPURay.h>
 #include <moonray/rendering/rt/rt.h>
 
 #include <scene_rdl2/common/platform/Platform.h>

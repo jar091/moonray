@@ -20,7 +20,7 @@
  * Revisiting Physically Based Shading, PBS Kulla'17
  */
 
-#include "TransmissionCookTorranceEnergyCompensation.h"
+#include <moonray/rendering/shading/bsdf/cook_torrance/energy_compensation/TransmissionCookTorranceEnergyCompensation.h>
 #include "TransmissionAlbedo.h"
 #include <moonray/rendering/shading/Util.h>
 

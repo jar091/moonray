@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "ProjectiveCamera.h"
+#include <moonray/rendering/pbr/camera/ProjectiveCamera.h>
 
 #include <scene_rdl2/common/math/Mat4.h>
 #include <scene_rdl2/common/math/Vec3.h>

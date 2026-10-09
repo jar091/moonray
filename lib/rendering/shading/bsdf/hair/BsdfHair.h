@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "HairState.h"
+#include <moonray/rendering/shading/bsdf/hair/HairState.h>
 #include <moonray/rendering/shading/bsdf/Bsdf.h>
 
 #include <moonray/rendering/shading/ispc/BsdfComponent_ispc_stubs.h>

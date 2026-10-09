@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "InstanceProceduralLeaf.h"
+#include <moonray/rendering/geom/InstanceProceduralLeaf.h>
 
 #include <moonray/rendering/geom/Api.h>
 #include <moonray/rendering/geom/SharedPrimitive.h>

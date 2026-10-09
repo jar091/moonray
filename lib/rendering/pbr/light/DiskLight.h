@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Light.h"
+#include <moonray/rendering/pbr/light/Light.h>
 
 #include <scene_rdl2/common/math/BBox.h>
 #include <scene_rdl2/common/math/Color.h>

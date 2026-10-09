@@ -31,6 +31,26 @@ getNVIDIADriverVersion(int* major, int* minor)
     *major = 0;
     *minor = 0;
     bool success = false;
+#if defined(_WIN32)
+    // /sys/module/nvidia/version is Linux only. The question the caller is
+    // really asking - "is the installed driver new enough?" - is answered on
+    // Windows by the CUDA version the driver reports: NVIDIA's compatibility
+    // table makes "driver >= 525" and "supports CUDA >= 12.0" the same
+    // statement, so the CUDA version is converted to the driver number the
+    // caller compares against. cudaDriverGetVersion() returns
+    // 1000*major + 10*minor (12080 for CUDA 12.8) and 0 when no driver is
+    // installed.
+    int cudaDriverVersion = 0;
+    if (cudaDriverGetVersion(&cudaDriverVersion) == cudaSuccess &&
+        cudaDriverVersion > 0) {
+        // CUDA 12.0 <-> driver 525 is the anchor; each CUDA minor version is
+        // reported as a driver number above it, which keeps the comparison
+        // monotonic without claiming a precision this cannot have.
+        *major = 525 + (cudaDriverVersion - 12000) / 1000;
+        *minor = (cudaDriverVersion % 1000) / 10;
+        success = cudaDriverVersion >= 12000;
+    }
+#else
     FILE *fp = fopen("/sys/module/nvidia/version", "r");
     if (fp != NULL) {
         if (fscanf(fp, "%d.%d", major, minor) == 2) {
@@ -38,6 +58,7 @@ getNVIDIADriverVersion(int* major, int* minor)
         }
         fclose(fp);
     }
+#endif
     return success;
 }
 
@@ -135,7 +156,13 @@ createOptixModule(OptixDeviceContext context,
 
     char logString[MAX_LOGSTRING_SIZE];
     size_t logStringSize = sizeof(logString);
+    // OptiX 7.7 renamed optixModuleCreateFromPTX() to optixModuleCreate();
+    // the parameters are unchanged.
+#if OPTIX_VERSION >= 70700
+    if (optixModuleCreate(context,
+#else
     if (optixModuleCreateFromPTX(context,
+#endif
                                  &moduleCompileOptions,
                                  &pipelineCompileOptions,
                                  ptx.c_str(),
@@ -293,7 +320,13 @@ createOptixPipeline(OptixDeviceContext context,
 
     OptixStackSizes stackSizes = {};
     for (auto pg : pgs) {
+        // OptiX 8 added the pipeline argument, so that the accumulated sizes
+        // can account for the pipeline's own state.
+#if OPTIX_VERSION >= 80000
+        if (optixUtilAccumulateStackSizes(pg, &stackSizes, *pipeline) != OPTIX_SUCCESS) {
+#else
         if (optixUtilAccumulateStackSizes(pg, &stackSizes) != OPTIX_SUCCESS) {
+#endif
             optixPipelineDestroy(*pipeline);
             *errorMsg = "Unable to accumulate Optix stack sizes.";
             return false;

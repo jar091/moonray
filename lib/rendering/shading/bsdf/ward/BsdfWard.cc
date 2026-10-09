@@ -7,7 +7,7 @@
 ///
 
 
-#include "BsdfWard.h"
+#include <moonray/rendering/shading/bsdf/ward/BsdfWard.h>
 #include <moonray/rendering/shading/Util.h>
 
 #include <math.h>

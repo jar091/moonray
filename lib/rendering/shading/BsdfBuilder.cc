@@ -1,29 +1,29 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "BsdfBuilder.h"
-#include "BsdfComponent.h"
+#include <moonray/rendering/shading/BsdfBuilder.h>
+#include <moonray/rendering/shading/BsdfComponent.h>
 
-#include "bsdf/Bsdf.h"
-#include "bsdf/BsdfEyeCaustic.h"
-#include "bsdf/BsdfLambert.h"
-#include "bsdf/BsdfOrenNayar.h"
-#include "bsdf/BsdfMirror.h"
-#include "bsdf/cook_torrance/BsdfCookTorrance.h"
-#include "bsdf/BsdfStochasticFlakes.h"
-#include "bsdf/BsdfIridescence.h"
-#include "bsdf/Fresnel.h"
-#include "bsdf/hair/BsdfHairDiffuse.h"
-#include "bsdf/hair/BsdfHairLobes.h"
-#include "bsdf/hair/HairUtil.h"
-#include "bsdf/hair/BsdfHairOneSampler.h"
-#include "bsdf/under/BsdfUnderClearcoat.h"
-#include "bsdf/under/BsdfUnderClearcoatTransmission.h"
-#include "bsdf/fabric/BsdfFabric.h"
-#include "bsdf/npr/BsdfToon.h"
-#include "bsdf/npr/BsdfFlatDiffuse.h"
-#include "bssrdf/Bssrdf.h"
-#include "bssrdf/VolumeSubsurface.h"
+#include <moonray/rendering/shading/bsdf/Bsdf.h>
+#include <moonray/rendering/shading/bsdf/BsdfEyeCaustic.h>
+#include <moonray/rendering/shading/bsdf/BsdfLambert.h>
+#include <moonray/rendering/shading/bsdf/BsdfOrenNayar.h>
+#include <moonray/rendering/shading/bsdf/BsdfMirror.h>
+#include <moonray/rendering/shading/bsdf/cook_torrance/BsdfCookTorrance.h>
+#include <moonray/rendering/shading/bsdf/BsdfStochasticFlakes.h>
+#include <moonray/rendering/shading/bsdf/BsdfIridescence.h>
+#include <moonray/rendering/shading/bsdf/Fresnel.h>
+#include <moonray/rendering/shading/bsdf/hair/BsdfHairDiffuse.h>
+#include <moonray/rendering/shading/bsdf/hair/BsdfHairLobes.h>
+#include <moonray/rendering/shading/bsdf/hair/HairUtil.h>
+#include <moonray/rendering/shading/bsdf/hair/BsdfHairOneSampler.h>
+#include <moonray/rendering/shading/bsdf/under/BsdfUnderClearcoat.h>
+#include <moonray/rendering/shading/bsdf/under/BsdfUnderClearcoatTransmission.h>
+#include <moonray/rendering/shading/bsdf/fabric/BsdfFabric.h>
+#include <moonray/rendering/shading/bsdf/npr/BsdfToon.h>
+#include <moonray/rendering/shading/bsdf/npr/BsdfFlatDiffuse.h>
+#include <moonray/rendering/shading/bssrdf/Bssrdf.h>
+#include <moonray/rendering/shading/bssrdf/VolumeSubsurface.h>
 
 #include <moonray/rendering/shading/AovLabels.h>
 #include <moonray/rendering/shading/Geometry.h>

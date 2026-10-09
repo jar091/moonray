@@ -5,7 +5,7 @@
 /// @file EmissionDistribution.cc
 ///
 
-#include "EmissionDistribution.h"
+#include <moonray/rendering/geom/prim/EmissionDistribution.h>
 
 using namespace scene_rdl2;
 namespace moonray {

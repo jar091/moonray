@@ -6,7 +6,7 @@
 ///
 ///
 
-#include "TextureSampler.h"
+#include <moonray/rendering/texturing/sampler/TextureSampler.h>
 
 #include <moonray/statistics/StatsTable.h>
 #include <moonray/statistics/StatsTableOutput.h>

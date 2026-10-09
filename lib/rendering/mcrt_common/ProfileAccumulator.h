@@ -17,8 +17,25 @@
 #include <scene_rdl2/render/util/MiscUtils.h>
 #if __ARM_NEON__
 #include <scene_rdl2/common/arm/emulation.h>
+#elif defined(_MSC_VER)
+#include <intrin.h>   // MSVC has no <x86intrin.h>; __rdtsc/__rdtscp live here
 #else
 #include <x86intrin.h>
+#endif
+
+// DLL-interface macro: CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS exports functions but
+// not data, and the profiling globals below are read directly by the inlined
+// accumulator macros in every library above this one (rendering_geom,
+// rendering_pbr, ...). rendering_mcrt_common_EXPORTS is defined by CMake while
+// building the DLL itself.
+#if defined(_WIN32)
+  #if defined(rendering_mcrt_common_EXPORTS)
+    #define MOONRAY_MCRT_COMMON_EXPORT __declspec(dllexport)
+  #else
+    #define MOONRAY_MCRT_COMMON_EXPORT __declspec(dllimport)
+  #endif
+#else
+  #define MOONRAY_MCRT_COMMON_EXPORT
 #endif
 
 #include <atomic>
@@ -63,8 +80,8 @@ enum AccumulatorFlags
 struct Accumulator;
 struct ThreadLocalAccumulator;
 
-extern bool gAccumulatorsActive;
-MNRY_DURING_ASSERTS(extern std::atomic_int gNumAccumulatorsActive);
+extern MOONRAY_MCRT_COMMON_EXPORT bool gAccumulatorsActive;
+MNRY_DURING_ASSERTS(extern MOONRAY_MCRT_COMMON_EXPORT std::atomic_int gNumAccumulatorsActive);
 
 struct AccumulatorResult
 {

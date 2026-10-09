@@ -5,7 +5,7 @@
 #ifndef RENDEROPTIONS_H
 #define RENDEROPTIONS_H
 
-#include "Types.h"
+#include <moonray/rendering/rndr/Types.h>
 #include <scene_rdl2/common/grid_util/Parser.h>
 #include <scene_rdl2/common/math/Viewport.h>
 #include <scene_rdl2/common/math/Vec2.h>

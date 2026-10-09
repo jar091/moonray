@@ -3,7 +3,7 @@
 
 ///
 ///
-#include "Fresnel.h"
+#include <moonray/rendering/shading/bsdf/Fresnel.h>
 #include <scene_rdl2/render/util/Arena.h>
 
 namespace moonray {

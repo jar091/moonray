@@ -3,7 +3,7 @@
 
 //
 
-#include "Error.h"
+#include <moonray/rendering/rndr/Error.h>
 
 #include <array>
 #include <cerrno>
@@ -22,7 +22,15 @@ const std::string
 getErrorDescription()
 {
     std::array<char, 1024> errbuf;
-#if __APPLE__ || (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
+#if defined(_MSC_VER)
+    // The UCRT's thread-safe spelling. strerror_s() writes the message into the
+    // caller's buffer and returns 0 on success (like the POSIX strerror_r, not
+    // the GNU one).
+    if (strerror_s(errbuf.data(), errbuf.size(), errno) != 0) {
+        return std::string("Unknown error");
+    }
+    return std::string(errbuf.data());
+#elif __APPLE__ || (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
     std::string e("Unknown error");
     if (strerror_r(errno, errbuf.data(), errbuf.size()) >= 0) {
         e = errbuf.data();

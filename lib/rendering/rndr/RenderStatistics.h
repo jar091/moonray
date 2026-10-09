@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include "RenderOptions.h"
+#include <moonray/rendering/rndr/RenderOptions.h>
 #include <moonray/rendering/rndr/statistics/ArrasLogStream.h>
 #include <moonray/rendering/rndr/statistics/AthenaCSVStream.h>
 #include <moonray/common/mcrt_util/Average.h>

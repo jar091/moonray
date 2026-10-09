@@ -26,7 +26,7 @@ using namespace scene_rdl2::math;
 namespace {
 
 // cdf for normalized diffusion, eq(11) in [1]
-finline float diffusionCDF(float r, float d) __attribute__((__unused__));
+[[maybe_unused]] finline float diffusionCDF(float r, float d);
 
 finline float diffusionCDF(float r, float d)
 {

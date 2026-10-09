@@ -6,9 +6,9 @@
 /// $Id$
 ///
 
-#include "PathIntegrator.h"
-#include "PathIntegratorUtil.h"
-#include "VolumeTransmittance.h"
+#include <moonray/rendering/pbr/integrator/PathIntegrator.h>
+#include <moonray/rendering/pbr/integrator/PathIntegratorUtil.h>
+#include <moonray/rendering/pbr/integrator/VolumeTransmittance.h>
 #include <moonray/rendering/pbr/camera/Camera.h>
 #include <moonray/rendering/pbr/core/Aov.h>
 #include <moonray/rendering/pbr/core/Constants.h>

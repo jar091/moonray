@@ -1,7 +1,7 @@
 // Copyright 2025-2026 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "PathVisualizer.h"
+#include <moonray/rendering/pbr/core/PathVisualizer.h>
 
 #include <moonray/common/time/Timer.h>
 #include <moonray/rendering/drawing/drawing.h>

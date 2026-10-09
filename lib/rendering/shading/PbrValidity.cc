@@ -4,7 +4,7 @@
 //
 //
 
-#include "PbrValidity.h"
+#include <moonray/rendering/shading/PbrValidity.h>
 
 namespace moonray {
 namespace shading {

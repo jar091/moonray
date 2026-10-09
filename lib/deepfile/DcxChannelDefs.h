@@ -4,7 +4,7 @@
 #ifndef INCLUDED_DCX_CHANNELDEFS_H
 #define INCLUDED_DCX_CHANNELDEFS_H
 
-#include "DcxChannelSet.h"
+#include <moonray/deepfile/DcxChannelSet.h>
 
 
 //----------------

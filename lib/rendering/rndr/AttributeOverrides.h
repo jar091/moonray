@@ -5,7 +5,7 @@
 #pragma once
 
 
-#include "RenderOptions.h"
+#include <moonray/rendering/rndr/RenderOptions.h>
 
 #include <scene_rdl2/scene/rdl2/rdl2.h>
 

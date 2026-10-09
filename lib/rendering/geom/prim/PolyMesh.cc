@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "PolyMesh.h"
+#include <moonray/rendering/geom/prim/PolyMesh.h>
 
 #include <moonray/rendering/geom/prim/GeomTLState.h>
 #include <moonray/rendering/geom/prim/MeshTessellationUtil.h>

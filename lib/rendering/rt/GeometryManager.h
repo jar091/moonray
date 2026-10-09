@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "EmbreeAccelerator.h"
+#include <moonray/rendering/rt/EmbreeAccelerator.h>
 #include "GeometryManagerExecTracker.h"
-#include "gpu/GPUAccelerator.h"
+#include <moonray/rendering/rt/gpu/GPUAccelerator.h>
 
 #include <moonray/common/mcrt_util/Average.h>
 #include <moonray/rendering/mcrt_common/Frustum.h>
@@ -26,8 +26,8 @@
 namespace moonray {
 
 namespace geom {
-class BakedMesh;
-class BakedCurves;
+struct BakedMesh;   // struct, not class: MSVC encodes the class-key in the mangled name
+struct BakedCurves;
 
 namespace internal {
 class VolumeAssignmentTable;
@@ -37,6 +37,24 @@ class VolumeAssignmentTable;
 namespace rt {
 
 enum class ChangeFlag;
+
+/// Computes the frustums and the world2render transform of a dicing camera.
+///
+/// The dicing camera implementation lives in `rendering_pbr`, which already
+/// links `rendering_rt`; having `rendering_rt` call into it directly would
+/// close a library cycle. So the dependency is inverted: `rendering_rt` only
+/// declares this callback (whose signature mentions scene_rdl2 and
+/// mcrt_common types exclusively), `rendering_pbr` provides the
+/// implementation (`pbr::computeDicingCameraFrustums`), and
+/// `rendering_rndr` - which links both - installs it on the GeometryManager.
+///
+/// `dicingRdlCamera` is guaranteed to be non-null and of SceneClass
+/// "PerspectiveCamera". Returns whether the frustums could be computed.
+using DicingCameraFrustumsFn =
+    std::function<bool(const scene_rdl2::rdl2::Camera* dicingRdlCamera,
+                       const scene_rdl2::math::Mat4d& mainWorld2Render,
+                       std::vector<mcrt_common::Frustum>* frustums,
+                       scene_rdl2::math::Mat4d* dicingWorld2Render)>;
 
 typedef tbb::concurrent_unordered_map<geom::internal::Primitive *, std::atomic<unsigned int>> PrimitiveReferenceCountMap;
 
@@ -216,6 +234,14 @@ public:
                                  const geom::internal::NamedPrimitive* prim,
                                  const scene_rdl2::math::Mat4d& mainWorld2Render);
 
+    /// Installs the dicing-camera implementation (see DicingCameraFrustumsFn).
+    /// Without it a dicing camera is treated as absent, i.e. the primary
+    /// camera is used for tessellation.
+    void setDicingCameraFrustumsFn(DicingCameraFrustumsFn fn)
+    {
+        mDicingCameraFrustumsFn = std::move(fn);
+    }
+
 private:
 
     /// Tessellates the Geometries in the provided GeometrySets
@@ -261,6 +287,10 @@ private:
     ChangeFlagAtomic mChangeStatus;
 
     std::unique_ptr<geom::internal::VolumeAssignmentTable> mVolumeAssignmentTable;
+
+    /// Supplied by rendering_rndr; empty if no dicing-camera implementation
+    /// was installed.
+    DicingCameraFrustumsFn mDicingCameraFrustumsFn;
 };
 
 // For use with shadow suppression between specified geometries

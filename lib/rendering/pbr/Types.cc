@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //
-#include "Types.h"
+#include <moonray/rendering/pbr/Types.h>
 #include <scene_rdl2/common/platform/HybridUniformData.h>
 #include <scene_rdl2/common/platform/HybridVaryingData.h>
 

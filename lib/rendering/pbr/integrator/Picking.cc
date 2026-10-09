@@ -3,7 +3,7 @@
 
 #include <moonray/rendering/pbr/core/Scene.h>
 
-#include "Picking.h"
+#include <moonray/rendering/pbr/integrator/Picking.h>
 #include <moonray/rendering/pbr/camera/Camera.h>
 #include <moonray/rendering/pbr/core/Constants.h>
 #include <moonray/rendering/pbr/light/Light.h>

@@ -6,17 +6,17 @@
 // UNIFORM/ADAPTIVE sampling mode. These mode required special care to construct multi-passes workQueue.
 // After construct special multi-passes workQueue, finally calls RenderDriver::renderPasses().
 //
-#include "RenderDriver.h"
+#include <moonray/rendering/rndr/RenderDriver.h>
 
-#include "AdaptiveRenderTilesTable.h"
-#include "ImageWriteCache.h"
-#include "ImageWriteDriver.h"
-#include "PixSampleRuntimeVerify.h"
-#include "RenderContext.h"
-#include "RenderOutputDriver.h"
-#include "ResumeHistoryMetaData.h"
-#include "TileSampleSpecialEvent.h"
-#include "TileWorkQueueRuntimeVerify.h"
+#include <moonray/rendering/rndr/AdaptiveRenderTilesTable.h>
+#include <moonray/rendering/rndr/ImageWriteCache.h>
+#include <moonray/rendering/rndr/ImageWriteDriver.h>
+#include <moonray/rendering/rndr/PixSampleRuntimeVerify.h>
+#include <moonray/rendering/rndr/RenderContext.h>
+#include <moonray/rendering/rndr/RenderOutputDriver.h>
+#include <moonray/rendering/rndr/ResumeHistoryMetaData.h>
+#include <moonray/rendering/rndr/TileSampleSpecialEvent.h>
+#include <moonray/rendering/rndr/TileWorkQueueRuntimeVerify.h>
 
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>
 #include <scene_rdl2/render/util/Random.h>

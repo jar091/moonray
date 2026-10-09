@@ -7,7 +7,7 @@
 ///
 
 
-#include "BsdfOneSampler.h"
+#include <moonray/rendering/pbr/integrator/BsdfOneSampler.h>
 
 #include <moonray/rendering/shading/bsdf/Bsdfv.h>
 

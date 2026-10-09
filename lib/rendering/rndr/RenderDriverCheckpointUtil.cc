@@ -3,7 +3,7 @@
 
 //
 //
-#include "RenderDriver.h"
+#include <moonray/rendering/rndr/RenderDriver.h>
 
 #include <scene_rdl2/common/rec_time/RecTime.h>
 #include <scene_rdl2/render/util/StrUtil.h>

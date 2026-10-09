@@ -4,27 +4,97 @@
 ///
 ///
 
-#include "SocketStream.h"
+#include <moonray/rendering/rndr/statistics/SocketStream.h>
 
 #include <cassert>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
+#include <mutex>
 #include <utility>
 
+#ifdef _WIN32
+// Winsock2 is the Windows spelling of the same BSD socket API: the calls used
+// here (getaddrinfo/socket/bind/listen/accept/connect/getsockname/select) have
+// identical signatures. What differs is spelled out below.
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#endif
 
 namespace moonray {
 namespace stats {
 
-ListeningSocket::ListeningSocket(int port) :
-    mFD(-1)
+#ifdef _WIN32
+
+void initSocketLayer()
 {
+    // WSAStartup() is reference counted, but doing it once behind a call_once
+    // keeps it off the hot path. There is no matching WSACleanup(): the sockets
+    // outlive any scope it could be tied to, and the OS reclaims at exit.
+    static std::once_flag sOnce;
+    std::call_once(sOnce, [] {
+        WSADATA wsaData;
+        const int rc = WSAStartup(MAKEWORD(2, 2), &wsaData);
+        if (rc != 0) {
+            throw SocketException("Unable to initialize Winsock: " + std::to_string(rc));
+        }
+    });
+}
+
+namespace {
+// Winsock reports errors through WSAGetLastError() rather than errno, and
+// read()/write() are not defined for sockets there - recv()/send() are.
+inline int socketErrno() { return WSAGetLastError(); }
+constexpr int kSocketEIntr       = WSAEINTR;
+constexpr int kSocketEWouldBlock = WSAEWOULDBLOCK;
+constexpr int kSocketEAgain      = WSAEWOULDBLOCK;
+inline void closeSocket(SocketHandle fd) { ::closesocket(fd); }
+inline ssize_t sendSocket(SocketHandle fd, const char* buf, ssize_t count)
+{
+    return ::send(fd, buf, static_cast<int>(count), 0);
+}
+inline ssize_t recvSocket(SocketHandle fd, char* buf, ssize_t count)
+{
+    return ::recv(fd, buf, static_cast<int>(count), 0);
+}
+} // namespace
+
+#else // else of _WIN32
+
+void initSocketLayer() {}
+
+namespace {
+inline int socketErrno() { return errno; }
+constexpr int kSocketEIntr       = EINTR;
+constexpr int kSocketEWouldBlock = EWOULDBLOCK;
+constexpr int kSocketEAgain      = EAGAIN;
+inline void closeSocket(SocketHandle fd) { ::close(fd); }
+inline ssize_t sendSocket(SocketHandle fd, const char* buf, ssize_t count)
+{
+    return ::write(fd, buf, count);
+}
+inline ssize_t recvSocket(SocketHandle fd, char* buf, ssize_t count)
+{
+    return ::read(fd, buf, count);
+}
+} // namespace
+
+#endif // end of not _WIN32
+
+ListeningSocket::ListeningSocket(int port) :
+    mFD(kInvalidSocket)
+{
+    initSocketLayer();
+
     addrinfo hints;
     memset(&hints, 0, sizeof(addrinfo));
     hints.ai_family    = AF_UNSPEC;  // Allow IPv4 or IPv6
@@ -47,19 +117,19 @@ ListeningSocket::ListeningSocket(int port) :
     }
 
     addrinfo* rp;
-    int sfd = -1;
+    SocketHandle sfd = kInvalidSocket;
     for (rp = result; rp != nullptr; rp = rp->ai_next) {
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sfd < 0) {
+        if (sfd == kInvalidSocket) {
             continue;
         }
 
-        if (bind(sfd, rp->ai_addr, rp->ai_addrlen) == 0) {
+        if (bind(sfd, rp->ai_addr, static_cast<int>(rp->ai_addrlen)) == 0) {
             // success!
             break;
         }
 
-        close(sfd);
+        closeSocket(sfd);
     }
 
     freeaddrinfo(result);
@@ -71,7 +141,7 @@ ListeningSocket::ListeningSocket(int port) :
     mFD = sfd;
 
     if (listen(mFD, 5) < 0) {
-        throw SocketException("Error on listen: " + std::string(strerror(errno)));
+        throw SocketException("Error on listen: " + std::to_string(socketErrno()));
     }
 }
 
@@ -83,7 +153,7 @@ ListeningSocket::ListeningSocket() :
 ListeningSocket::ListeningSocket(ListeningSocket&& other) noexcept :
     mFD(other.mFD)
 {
-    other.mFD = -1;
+    other.mFD = kInvalidSocket;
 }
 
 ListeningSocket& ListeningSocket::operator=(ListeningSocket&& other) noexcept
@@ -94,20 +164,20 @@ ListeningSocket& ListeningSocket::operator=(ListeningSocket&& other) noexcept
 
 ListeningSocket::~ListeningSocket()
 {
-    if (mFD >= 0) {
-        close(mFD);
+    if (mFD != kInvalidSocket) {
+        closeSocket(mFD);
     }
 }
 
 ListeningSocket::operator bool() const noexcept
 {
-    return mFD >= 0;
+    return mFD != kInvalidSocket;
 }
 
 int ListeningSocket::getPortNumber() const
 {
     sockaddr_in addr;
-    socklen_t addrlen = sizeof(addr);
+    socklen_t addrlen = static_cast<socklen_t>(sizeof(addr));
     std::memset(&addr, 0, addrlen);
     if (getsockname(mFD, reinterpret_cast<sockaddr*>(&addr), &addrlen) < 0) {
         throw SocketException("Error in getsockname");
@@ -121,19 +191,21 @@ void ListeningSocket::swap(ListeningSocket& other) noexcept
 }
 
 Socket::Socket() noexcept :
-    mFD(-1)
+    mFD(kInvalidSocket)
 {
 }
 
 Socket::~Socket()
 {
-    if (mFD >= 0) {
-        close(mFD);
+    if (mFD != kInvalidSocket) {
+        closeSocket(mFD);
     }
 }
 
 Socket Socket::as_client(const std::string& hostname, int port)
 {
+    initSocketLayer();
+
     addrinfo hints;
     memset(&hints, 0, sizeof(addrinfo));
     hints.ai_family   = AF_UNSPEC;  // Allow IPv4 or IPv6
@@ -153,19 +225,19 @@ Socket Socket::as_client(const std::string& hostname, int port)
     }
 
     addrinfo* rp;
-    int sfd = -1;
+    SocketHandle sfd = kInvalidSocket;
     for (rp = result; rp != nullptr; rp = rp->ai_next) {
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sfd < 0) {
+        if (sfd == kInvalidSocket) {
             continue;
         }
 
-        if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1) {
+        if (connect(sfd, rp->ai_addr, static_cast<int>(rp->ai_addrlen)) != -1) {
             // success!
             break;
         }
 
-        close(sfd);
+        closeSocket(sfd);
     }
 
     freeaddrinfo(result);
@@ -183,10 +255,10 @@ Socket Socket::as_server(const ListeningSocket& ls)
 {
     Socket ret;
     sockaddr_in cli_addr;
-    socklen_t clilen = sizeof(cli_addr);
+    socklen_t clilen = static_cast<socklen_t>(sizeof(cli_addr));
     ret.mFD = accept(ls.mFD, reinterpret_cast<sockaddr*>(&cli_addr), &clilen);
-    if (ret.mFD < 0) {
-        throw SocketException("Error on accept: " + std::string(strerror(errno)));
+    if (ret.mFD == kInvalidSocket) {
+        throw SocketException("Error on accept: " + std::to_string(socketErrno()));
     }
     return ret;
 }
@@ -194,7 +266,7 @@ Socket Socket::as_server(const ListeningSocket& ls)
 Socket::Socket(Socket&& other) noexcept :
     mFD(other.mFD)
 {
-    other.mFD = -1;
+    other.mFD = kInvalidSocket;
 }
 
 Socket& Socket::operator=(Socket&& other) noexcept
@@ -205,27 +277,28 @@ Socket& Socket::operator=(Socket&& other) noexcept
 
 Socket::operator bool() const noexcept
 {
-    return mFD >= 0;
+    return mFD != kInvalidSocket;
 }
 
 ssize_t Socket::write(const char* buf, ssize_t count)
 {
     ssize_t n = 0;
     while (n < count) {
-        const ssize_t ret = ::write(mFD, buf + n, count - n);
+        const ssize_t ret = sendSocket(mFD, buf + n, count - n);
         if (ret < 0) {
-            if (errno == EINTR) {
+            const int err = socketErrno();
+            if (err == kSocketEIntr) {
                 // Signal interruption; try again.
                 continue;
-            } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            } else if (err == kSocketEWouldBlock || err == kSocketEAgain) {
                 // Blocking socket. Wait for it to free up.
                 fd_set writefds;
                 FD_ZERO(&writefds);
                 FD_SET(mFD, &writefds);
 
                 // TODO: set timeout? What do we do if we timeout?
-                if (select(mFD + 1, nullptr, &writefds, nullptr, nullptr) < 0) {
-                    if (errno == EINTR) {
+                if (select(static_cast<int>(mFD) + 1, nullptr, &writefds, nullptr, nullptr) < 0) {
+                    if (socketErrno() == kSocketEIntr) {
                         continue;
                     }
                     return n;
@@ -245,22 +318,23 @@ ssize_t Socket::read(char* buf, ssize_t count)
 {
     ssize_t rc = 0;
     for ( ; ; ) {
-        const ssize_t ret = ::read(mFD, buf + rc, count - rc);
+        const ssize_t ret = recvSocket(mFD, buf + rc, count - rc);
         if (ret >= 0) {
             return ret;
         } else {
-            if (errno == EINTR) {
+            const int err = socketErrno();
+            if (err == kSocketEIntr) {
                 // Signal interruption; try again.
                 continue;
-            } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            } else if (err == kSocketEWouldBlock || err == kSocketEAgain) {
                 // Blocking socket. Wait for it to free up.
                 fd_set readfds;
                 FD_ZERO(&readfds);
                 FD_SET(mFD, &readfds);
 
                 // TODO: set timeout? What do we do if we timeout?
-                if (select(mFD + 1, &readfds, nullptr, nullptr, nullptr) < 0) {
-                    if (errno == EINTR) {
+                if (select(static_cast<int>(mFD) + 1, &readfds, nullptr, nullptr, nullptr) < 0) {
+                    if (socketErrno() == kSocketEIntr) {
                         continue;
                     }
                     return rc;
@@ -363,7 +437,7 @@ SocketStreambuf::int_type SocketStreambuf::underflow()
     }
 
     const std::size_t count = mInputBuffer.size() - (start - base);
-    const ssize_t rc = mSock.read(start, count);
+    const ssize_t rc = mSock.read(start, static_cast<ssize_t>(count));
     if (rc <= 0) {
         return traits_type::eof();
     }

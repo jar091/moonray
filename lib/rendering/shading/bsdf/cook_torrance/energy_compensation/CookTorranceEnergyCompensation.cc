@@ -20,7 +20,7 @@
  * with Importance Sampling, Kelemen, 01
  * (2) Revisiting Physically Based Shading, PBS Kulla'17
  */
-#include "CookTorranceEnergyCompensation.h"
+#include <moonray/rendering/shading/bsdf/cook_torrance/energy_compensation/CookTorranceEnergyCompensation.h>
 #include "ReflectionAlbedo.h"
 #include <scene_rdl2/common/math/MathUtil.h>
 #include <moonray/rendering/shading/Util.h>

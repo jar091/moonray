@@ -9,8 +9,8 @@
 #pragma once
 
 #include <moonray/rendering/shading/Util.h>
-#include "Bsdf.h"
-#include "BsdfSlice.h"
+#include <moonray/rendering/shading/bsdf/Bsdf.h>
+#include <moonray/rendering/shading/bsdf/BsdfSlice.h>
 
 #include <moonray/rendering/shading/ispc/bsdf/BsdfRetroreflection_ispc_stubs.h>
 

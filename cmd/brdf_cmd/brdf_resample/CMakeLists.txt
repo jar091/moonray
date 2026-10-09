@@ -10,7 +10,8 @@ target_sources(${target}
         main.cc
 )
 
-if (NOT IsDarwinPlatform)
+# libatomic is a GCC runtime library: neither Darwin nor MSVC has it.
+if (IsLinuxPlatform)
     set(PlatformSpecificLibs atomic)
 endif()
 

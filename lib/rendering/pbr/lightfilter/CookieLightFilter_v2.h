@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "LightFilter.h"
+#include <moonray/rendering/pbr/lightfilter/LightFilter.h>
 
 #include <moonray/rendering/pbr/core/Distribution.h>
 

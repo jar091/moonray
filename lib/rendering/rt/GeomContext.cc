@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "GeomContext.h"
+#include <moonray/rendering/rt/GeomContext.h>
 
 namespace moonray {
 namespace rt {

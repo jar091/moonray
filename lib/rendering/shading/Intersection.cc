@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Intersection.h"
+#include <moonray/rendering/shading/Intersection.h>
 
 #include <moonray/rendering/mcrt_common/Ray.h>
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>

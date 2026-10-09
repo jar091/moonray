@@ -6,7 +6,7 @@
 
 // Contains the Albedo Tables for BsdfFabricVelvet
 
-#include "VelvetAlbedo.h"
+#include <moonray/rendering/shading/bsdf/fabric/VelvetAlbedo.h>
 
 using namespace scene_rdl2::math;
 

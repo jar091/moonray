@@ -3,7 +3,7 @@
 
 /// @file Bsfdv.cc
 
-#include "Bsdfv.h"
+#include <moonray/rendering/shading/bsdf/Bsdfv.h>
 
 #include <moonray/rendering/shading/ispc/bsdf/Bsdfv_ispc_stubs.h>
 

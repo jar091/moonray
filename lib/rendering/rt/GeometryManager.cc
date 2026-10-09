@@ -4,8 +4,8 @@
 #include <moonray/rendering/geom/prim/NamedPrimitive.h>
 #include <moonray/rendering/geom/prim/VdbVolume.h>
 
-#include "GeometryManager.h"
-#include "GeomContext.h"
+#include <moonray/rendering/rt/GeometryManager.h>
+#include <moonray/rendering/rt/GeomContext.h>
 
 #include <moonray/common/time/Ticker.h>
 #include <moonray/rendering/shading/AttributeKey.h>
@@ -27,14 +27,12 @@
 #include <moonray/rendering/geom/prim/Sphere.h>
 #include <moonray/rendering/geom/prim/VolumeAssignmentTable.h>
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>
-#include <moonray/rendering/pbr/camera/PerspectiveCamera.h>
 
 #include <scene_rdl2/scene/rdl2/rdl2.h>
 #include <scene_rdl2/scene/rdl2/Geometry.h>
 #include <scene_rdl2/scene/rdl2/RootShader.h>
 #include <scene_rdl2/render/logging/logging.h>
 #include <scene_rdl2/render/util/stdmemory.h>
-#include <moonray/rendering/pbr/core/Util.h>
 
 #include <string.h>
 
@@ -42,7 +40,16 @@
 #include <tbb/parallel_for_each.h>
 
 #ifndef __APPLE__
-#include <malloc.h>    // malloc_trim
+#include <malloc.h>    // malloc_trim / _heapmin
+#endif
+
+#if defined(_WIN32)
+// _heapmin() is the UCRT's equivalent of glibc's malloc_trim(): it releases
+// the unused parts of the CRT heap back to the operating system.
+#define malloc_trim(pad) ::_heapmin()
+// The UCRT spells the re-entrant strtok "strtok_s"; same three-argument
+// contract (str, delimiters, context) and same return value.
+#define strtok_r strtok_s
 #endif
 
 namespace moonray {
@@ -1155,24 +1162,15 @@ GeometryManager::getDicingCameraFrustums(std::vector<mcrt_common::Frustum>* frus
 
     // dicing camera must be of type PerspectiveCamera
     if (className == "PerspectiveCamera") {
-        moonray::pbr::PerspectiveCamera dicingCamera(dicingRdlCamera);
-        scene_rdl2::math::Mat4d dicingRender2World = dicingRdlCamera->get(scene_rdl2::rdl2::Node::sNodeXformKey);
-        *dicingWorld2Render = moonray::pbr::rtInverse(dicingRender2World);
-
-        // The dicing camera's frustums by default assume it's looking down the negative z-axis in main camera space
-        // The transform we need moves the frustums into main camera space, then to the dicing camera's position
-        scene_rdl2::math::Mat4d frustumTransform(dicingRender2World * mainWorld2Render);
-        dicingCamera.update(*dicingWorld2Render); 
-
-        // compute dicing camera frustums, then transform them to be in the main camera's viewing space
-        frustums->push_back(mcrt_common::Frustum());
-        dicingCamera.computeFrustum(&frustums->back(), 0, true);  // frustum at shutter open
-        frustums->back().transformClipPlanes(frustumTransform);
-
-        frustums->push_back(mcrt_common::Frustum());
-        dicingCamera.computeFrustum(&frustums->back(), 1, true);  // frustum at shutter close
-        frustums->back().transformClipPlanes(frustumTransform);
-        return true;
+        // The camera implementation lives in rendering_pbr, which links this
+        // library; rendering_rndr installs it (see DicingCameraFrustumsFn).
+        // With no implementation installed there is no dicing camera as far
+        // as this library is concerned, and the primary camera is used for
+        // tessellation.
+        if (!mDicingCameraFrustumsFn) {
+            return false;
+        }
+        return mDicingCameraFrustumsFn(dicingRdlCamera, mainWorld2Render, frustums, dicingWorld2Render);
     } else if (className != "") {
         scene_rdl2::logging::Logger::warn("The only type of dicing camera that is supported is the PerspectiveCamera. "
                                           " The primary camera will be used for tessellation.");

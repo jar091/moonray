@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Fresnel.h"
+#include <moonray/rendering/shading/bsdf/Fresnel.h>
 
 #include <moonray/rendering/shading/ispc/bsdf/Bsdf_ispc_stubs.h>
 

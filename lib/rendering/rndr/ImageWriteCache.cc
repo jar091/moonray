@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <scene_rdl2/render/util/AtomicFloat.h> // Needs to be included before any OpenImageIO file
-#include "ImageWriteCache.h"
-#include "ProcKeeper.h"
-#include "RenderDriver.h"
-#include "RenderOutputDriver.h"
+#include <moonray/rendering/rndr/ImageWriteCache.h>
+#include <moonray/rendering/rndr/ProcKeeper.h>
+#include <moonray/rendering/rndr/RenderDriver.h>
+#include <moonray/rendering/rndr/RenderOutputDriver.h>
 
 #include <scene_rdl2/common/math/Math.h>
 #include <scene_rdl2/common/rec_time/RecTime.h>
@@ -18,6 +18,13 @@
 #include <errno.h>              // errno
 #include <fcntl.h>              // open
 #include <string.h>             // strerror
+#ifdef _WIN32
+#include <malloc.h>             // _heapmin
+#include <io.h>                 // _open, _close, _read, _write, _unlink, _isatty
+#include <stdio.h>              // _fileno
+#include <sys/stat.h>           // _fstat64
+#include <sys/types.h>          // _fstat64
+#else
 #ifndef __APPLE__
 #include <malloc.h>             // malloc_trim
 #include <sys/sendfile.h>       // sendfile
@@ -27,6 +34,17 @@
 #include <sys/stat.h>           // fstat
 #include <sys/types.h>          // fstat
 #include <unistd.h>             // unlink, close, isatty
+#endif
+
+#ifdef _WIN32
+// The Windows spellings of the POSIX libc calls used below.
+//   _heapmin() releases the unused parts of the CRT heap back to the OS, which
+//   is what the malloc_trim() calls are here for (accurate memory reporting).
+#define malloc_trim(x) _heapmin()
+#define open   _open
+#define close  _close
+#define unlink _unlink
+#endif
 
 // for runtime verify of block data size calculation
 //#define RUNTIME_VERIFY_BLOCKDATASIZE
@@ -457,6 +475,20 @@ ImageWriteCacheTmpFileItem::openTmpFileAndUnlink()
 {
     if (mTmpFilename.empty()) return false;
 
+#ifdef _WIN32
+    // Windows cannot unlink a file that is still open, so the POSIX
+    // open-then-unlink idiom is expressed the other way round: _O_TEMPORARY
+    // asks for FILE_FLAG_DELETE_ON_CLOSE, so the file is removed as soon as the
+    // last descriptor goes away - including when the process dies abnormally
+    // and the kernel closes the descriptor for us, which is exactly the
+    // guarantee this function exists for. The only difference is that the name
+    // stays visible in the directory until then instead of disappearing at once.
+    mTmpFileFd = open(mTmpFilename.c_str(), _O_RDONLY | _O_BINARY | _O_TEMPORARY);
+    if (mTmpFileFd == -1) {
+        return false;
+    }
+    return true;
+#else
     mTmpFileFd = open(mTmpFilename.c_str(), O_RDONLY, 0);
     if (mTmpFileFd == -1) {
         return false;
@@ -465,6 +497,7 @@ ImageWriteCacheTmpFileItem::openTmpFileAndUnlink()
         return false;
     }
     return true;
+#endif
 }
 
 bool
@@ -499,14 +532,49 @@ ImageWriteCacheTmpFileItem::copyFile(const std::string &dstName, std::string &er
 
     std::string copyDestName = genCopyDestName(dstName);
 
+#ifdef _WIN32
+    int dstFd = open(copyDestName.c_str(),
+                     _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY,
+                     _S_IREAD | _S_IWRITE);
+#else
     int dstFd = open(copyDestName.c_str(), O_WRONLY | O_CREAT, 0666);
+#endif
     if (dstFd < 0) {
         errMsg = scene_rdl2::util::buildString("Could not create copy destination file '",
                                    copyDestName.c_str(), "' ", strerror(errno));
         return false;
     }
 
-#ifdef __APPLE__
+#ifdef _WIN32
+    // No sendfile()/copyfile() equivalent that works from an already-open
+    // descriptor (CopyFile* take paths, and the source has no usable name once
+    // it is marked delete-on-close), so the bytes go through a plain read/write
+    // loop. Same result, same error reporting.
+    _lseeki64(mTmpFileFd, 0, SEEK_SET);
+    std::vector<char> copyBuff(1024 * 1024);
+    for (;;) {
+        const int readSize = _read(mTmpFileFd, copyBuff.data(), static_cast<unsigned>(copyBuff.size()));
+        if (readSize < 0) {
+            close(dstFd);
+            errMsg = scene_rdl2::util::buildString("Failed tmpFile copy to destination location '",
+                                       copyDestName.c_str(), "' ", strerror(errno));
+            return false;
+        }
+        if (readSize == 0) break; // end of file
+        int sentSize = 0;
+        while (sentSize < readSize) {
+            const int writtenSize = _write(dstFd, copyBuff.data() + sentSize,
+                                           static_cast<unsigned>(readSize - sentSize));
+            if (writtenSize <= 0) {
+                close(dstFd);
+                errMsg = scene_rdl2::util::buildString("Failed tmpFile copy to destination location '",
+                                           copyDestName.c_str(), "' ", strerror(errno));
+                return false;
+            }
+            sentSize += writtenSize;
+        }
+    }
+#elif defined(__APPLE__)
     int result = fcopyfile(mTmpFileFd, dstFd, NULL,
                            COPYFILE_ACL|COPYFILE_STAT|COPYFILE_XATTR|COPYFILE_DATA);
     if (result == -1) {
@@ -550,7 +618,11 @@ ImageWriteCacheTmpFileItem::copyFile(const std::string &dstName, std::string &er
 #   ifdef IMAGE_WRITE_DETAIL_MESSAGE
     std::string msg = scene_rdl2::util::buildString("Copied: tmpFile to '", copyDestName.c_str(), "'");
     scene_rdl2::logging::Logger::info(msg);
+#   ifdef _WIN32
+    if (_isatty(_fileno(stdout))) std::cout << msg << std::endl;
+#   else
     if (isatty(STDOUT_FILENO)) std::cout << msg << std::endl;
+#   endif
 #   endif // end IMAGE_WRITE_DETAIL_MESSAGE
 
     return true;

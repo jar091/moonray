@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "RSequence.h"
-#include "Sample.h"
-#include "SamplePartition.h"
-#include "SamplingPreprocess.h"
-#include "SamplingConstants.h"
-#include "SequenceID.h"
+#include <moonray/rendering/pbr/sampler/RSequence.h>
+#include <moonray/rendering/pbr/sampler/Sample.h>
+#include <moonray/rendering/pbr/sampler/SamplePartition.h>
+#include <moonray/rendering/pbr/sampler/SamplingPreprocess.h>
+#include <moonray/rendering/pbr/sampler/SamplingConstants.h>
+#include <moonray/rendering/pbr/sampler/SequenceID.h>
 
 #include <scene_rdl2/common/math/Math.h>
 #include <moonray/common/mcrt_util/StatelessRandomEngine.h>
@@ -23,18 +23,33 @@
 #include <thread>
 #endif
 
+// DLL-interface macro: CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS exports functions but
+// not data, and the partition tables below are namespace-scope objects that the
+// inline sampling templates in this header read directly from other libraries
+// (rendering_rndr). rendering_pbr_EXPORTS is defined by CMake while building
+// the DLL itself.
+#if defined(_WIN32)
+  #if defined(rendering_pbr_EXPORTS)
+    #define MOONRAY_PBR_SAMPLER_EXPORT __declspec(dllexport)
+  #else
+    #define MOONRAY_PBR_SAMPLER_EXPORT __declspec(dllimport)
+  #endif
+#else
+  #define MOONRAY_PBR_SAMPLER_EXPORT
+#endif
+
 namespace moonray {
 namespace pbr {
 
 const std::size_t kSampleGridSize = 64;
 #if defined(USE_PARTITIONED_PIXEL_2D)
 typedef SpatialSamplePartition<Sample2D, kSampleGridSize> PixelPartition;
-extern PixelPartition kPixelPartition;
+extern MOONRAY_PBR_SAMPLER_EXPORT PixelPartition kPixelPartition;
 #endif
 
 #if defined(USE_PARTITIONED_PIXEL_5D)
 typedef SpatialSamplePartition<Sample, kSampleGridSize> PixelPartition;
-extern PixelPartition kPixelPartition;
+extern MOONRAY_PBR_SAMPLER_EXPORT PixelPartition kPixelPartition;
 #endif
 
 #if defined(USE_PARTITIONED_LENS)
@@ -58,7 +73,7 @@ extern PixelPartition kPixelPartition;
 // // | 8 0 | 9 1 | A 2 | B 0 | 8 1 | 9 2 | A 0 | B 1 | 8 2 | 9 0 | A 1 | B 2 |
 // // | C 3 | D 4 | E 5 | F 3 | C 4 | D 5 | E 3 | F 4 | C 5 | D 3 | E 4 | F 5 |
 typedef SamplePartition<Sample2D, 31*31, 1024> LensPartition;
-extern LensPartition kLensPartition;
+extern MOONRAY_PBR_SAMPLER_EXPORT LensPartition kLensPartition;
 #endif
 
 #if defined(USE_PARTITIONED_TIME)
@@ -66,15 +81,15 @@ extern LensPartition kLensPartition;
 // size of the pixel sample partition. This means that as we tile the pixel
 // partition, we're going to mix the pixel samples with the time samples.
 typedef SamplePartition<float, 29*29, 1024> TimePartition;
-extern TimePartition kTimePartition;
+extern MOONRAY_PBR_SAMPLER_EXPORT TimePartition kTimePartition;
 #endif
 
 #if defined(USE_PARTITIONED_1D)
-extern const std::vector<float>    k1DSampleTable;
+extern MOONRAY_PBR_SAMPLER_EXPORT const std::vector<float>    k1DSampleTable;
 #endif
 
 #if defined(USE_PARTITIONED_2D)
-extern const std::vector<Sample2D> k2DSampleTable;
+extern MOONRAY_PBR_SAMPLER_EXPORT const std::vector<Sample2D> k2DSampleTable;
 #endif
 
 namespace detail {

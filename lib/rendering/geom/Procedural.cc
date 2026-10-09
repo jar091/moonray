@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Procedural.h"
+#include <moonray/rendering/geom/Procedural.h>
 
 #include <moonray/rendering/geom/Api.h>
 #include <moonray/rendering/geom/Instance.h>

@@ -10,7 +10,11 @@
 #include <type_traits>
 #include <utility>
 
+#if defined(_WIN32)
+#include <malloc.h> // _aligned_malloc, _aligned_free
+#else
 #include <stdlib.h> // posix_memalign
+#endif
 
 
 namespace moonray {
@@ -530,6 +534,16 @@ private:
     [[gnu::alloc_size(1)]] [[gnu::malloc]] static void* doAllocate(std::size_t bytes)
     {
         void* mem;
+#if defined(_WIN32)
+        // The UCRT has no posix_memalign(). kAlignment is a power of two by
+        // construction (roundUpPower2 above), so the EINVAL case cannot occur;
+        // _aligned_malloc() only fails by returning null. The allocation must
+        // be released with _aligned_free() (see doFree below).
+        mem = _aligned_malloc(bytes, kAlignment);
+        if (mem == nullptr) {
+            throw std::bad_alloc{};
+        }
+#else
         if (int error = posix_memalign(std::addressof(mem), kAlignment, bytes)) {
             if (error == EINVAL) {
                 throw std::invalid_argument{"Bad alignment"};
@@ -537,12 +551,17 @@ private:
                 throw std::bad_alloc{};
             }
         }
+#endif
         return mem;
     };
 
     static void doFree(void* ptr) noexcept
     {
+#if defined(_WIN32)
+        _aligned_free(ptr);
+#else
         free(ptr);
+#endif
     }
 
     static T* checkAlignment(T* p) noexcept

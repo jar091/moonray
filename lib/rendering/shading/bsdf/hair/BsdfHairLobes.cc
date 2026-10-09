@@ -8,7 +8,7 @@
 
 
 #include <moonray/rendering/shading/ColorCorrect.h>
-#include "BsdfHairLobes.h"
+#include <moonray/rendering/shading/bsdf/hair/BsdfHairLobes.h>
 #include <moonray/rendering/shading/bsdf/BsdfSlice.h>
 #include <moonray/rendering/shading/Util.h>
 #include <moonray/rendering/shading/ColorCorrect.h>

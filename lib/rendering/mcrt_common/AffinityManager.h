@@ -5,9 +5,9 @@
 #include <scene_rdl2/common/grid_util/Arg.h>
 #include <scene_rdl2/common/grid_util/Parser.h>
 #include <scene_rdl2/render/util/Arena.h>
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
 #include <scene_rdl2/common/grid_util/NumaUtil.h>
-#endif // end of Not PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX
 
 #include <memory> // shared_ptr
 #include <vector>
@@ -26,19 +26,19 @@ public:
     // Constructor regarding Memory Affinity Off
     MemoryNode(const unsigned activeThreadCount);
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     // Constructor regarding Both Memory Affinity On/Off depending on the numaNodeId argument
     // numaNodeId : ~0        : Memory Affinity Off
     //              otherwise : Memory Affinity On
     MemoryNode(const unsigned numaNodeId,
                const scene_rdl2::grid_util::NumaNode* numaNode,
                const unsigned activeThreadCount);
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     unsigned getNumaNodeId() const { return mNumaNodeId; }
     const scene_rdl2::grid_util::NumaNode* getNumaNode() const { return mNumaNode; }
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
     // Return the active thread count of this NUMA-node.
     // This NUMA-node memory is shared with this number of threads
@@ -52,9 +52,9 @@ public:
 
 private:
     unsigned mNumaNodeId {~static_cast<unsigned>(0)};
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     const scene_rdl2::grid_util::NumaNode* mNumaNode {nullptr};
-#endif // end PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX
     unsigned mActiveThreadCount {0}; // Memory is shared with this number of threads
 
     scene_rdl2::util::Ref<scene_rdl2::alloc::ArenaBlockPool> mArenaBlockPool;
@@ -105,11 +105,11 @@ public:
 
 private:
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     std::vector<unsigned> calcActiveNumaNodeIdTbl(const std::shared_ptr<const CpuAffinityManager>& cpuAff) const;
     void setupMcrtThreadIdToMemNodeIdTbl(const std::shared_ptr<const CpuAffinityManager>& cpuAff);
     unsigned calcThreadCountOnActiveNumaNode(const unsigned numaNodeId) const;
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
     std::string showNumaUtil() const;
     std::string showMemGlobal() const;
@@ -122,9 +122,9 @@ private:
     bool mMemAffinityEnable {false};
     unsigned mMaxThreadId {0};
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     std::shared_ptr<scene_rdl2::grid_util::NumaUtil> mNumaUtil;
-#endif // end PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX
 
     std::shared_ptr<MemoryNode> mMemGlobal; // for non memory affinity configuration and GUI TLS
 

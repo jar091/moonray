@@ -5,7 +5,7 @@
 /// @file OpenSubdivMesh.cc
 ///
 
-#include "OpenSubdivMesh.h"
+#include <moonray/rendering/geom/prim/OpenSubdivMesh.h>
 
 #include <moonray/rendering/geom/prim/GeomTLState.h>
 #include <moonray/rendering/geom/prim/MeshTessellationUtil.h>
@@ -1541,7 +1541,7 @@ generatePatchCvs(const OpenSubdiv::Far::TopologyRefiner* refiner,
                  std::vector<PatchCV>& patchCvs,
                  std::vector<TextureCV>& textureCvs,
                  bool requireUniformFix,
-                 uint motionSampleCount)
+                 unsigned int motionSampleCount)
 {
     // compute the total number of points we need to evaluate patchTable
     // we use local points around extraordinary features.
@@ -1754,7 +1754,7 @@ evalLimitSurface(const OpenSubdiv::Far::PatchTable* patchTable,
                  VertexBuffer<Vec3f, InterleavedTraits>& surfaceDpdt,
                  std::vector<DisplacementFootprint>& displacementFootprints,
                  bool& hasBadDerivatives, bool requireUniformFix,
-                 uint motionSampleCount)
+                 unsigned int motionSampleCount)
 {
     // allocate tessellated vertex/index buffer to hold the evaluation result
     size_t tessellatedVertexCount = limitSurfaceSamples.size();
@@ -1769,6 +1769,20 @@ evalLimitSurface(const OpenSubdiv::Far::PatchTable* patchTable,
     OpenSubdiv::Far::PatchMap patchMap(*patchTable);
     tbb::blocked_range<size_t> range = tbb::blocked_range<size_t>(0, tessellatedVertexCount);
     tbb::parallel_for(range, [&](const tbb::blocked_range<size_t> &r) {
+        // Per-sample scratch, indexed by motion sample. These used to be
+        // variable-length arrays, which are a GCC extension MSVC does not
+        // implement; hoisting them out of the sample loop allocates them once
+        // per blocked_range instead of once per sample. Every element is
+        // written before it is read on each iteration (see below), so reusing
+        // the buffers across iterations is equivalent.
+        std::vector<Vec3fa> pos(motionSampleCount);
+        std::vector<Vec3fa> dpdu(motionSampleCount);
+        std::vector<Vec3fa> dpdv(motionSampleCount);
+        std::vector<Vec3fa> dpduu(motionSampleCount);
+        std::vector<Vec3fa> dpduv(motionSampleCount);
+        std::vector<Vec3fa> dpdvv(motionSampleCount);
+        std::vector<Vec3f> dpds(motionSampleCount);
+        std::vector<Vec3f> dpdt(motionSampleCount);
         for (size_t i = r.begin(); i < r.end(); ++i) {
             int fid = limitSurfaceSamples[i].mFaceId;
             if (fid == -1) {
@@ -1794,12 +1808,6 @@ evalLimitSurface(const OpenSubdiv::Far::PatchTable* patchTable,
                                       duuWeights,
                                       duvWeights,
                                       dvvWeights);
-            Vec3fa pos[motionSampleCount];
-            Vec3fa dpdu[motionSampleCount];
-            Vec3fa dpdv[motionSampleCount];
-            Vec3fa dpduu[motionSampleCount];
-            Vec3fa dpduv[motionSampleCount];
-            Vec3fa dpdvv[motionSampleCount];
             for (size_t t = 0; t < motionSampleCount; ++t) {
                 pos[t] = Vec3fa(0.0f);
                 dpdu[t] = Vec3fa(0.0f);
@@ -1939,8 +1947,6 @@ evalLimitSurface(const OpenSubdiv::Far::PatchTable* patchTable,
                 }
 
                 surfaceSt(i) = st;
-                Vec3f dpds[motionSampleCount];
-                Vec3f dpdt[motionSampleCount];
                 for (size_t t = 0; t < motionSampleCount; ++t) {
                     computePartialsWithRespect2Texture(dpdu[t], dpdv[t],
                                                        dstdu, dstdv,
@@ -2905,10 +2911,10 @@ OpenSubdivMesh::bakePosMap(int width,
     const int faceVertexCount = 4; // tessellated mesh is always quads
     for (size_t faceId = 0; faceId < getTessellatedMeshFaceCount(); ++faceId) {
         // vertex ids of quad
-        const uint vid0 = mTessellatedIndices[faceVertexCount * faceId];
-        const uint vid1 = mTessellatedIndices[faceVertexCount * faceId + 1];
-        const uint vid2 = mTessellatedIndices[faceVertexCount * faceId + 2];
-        const uint vid3 = mTessellatedIndices[faceVertexCount * faceId + 3];
+        const unsigned int vid0 = mTessellatedIndices[faceVertexCount * faceId];
+        const unsigned int vid1 = mTessellatedIndices[faceVertexCount * faceId + 1];
+        const unsigned int vid2 = mTessellatedIndices[faceVertexCount * faceId + 2];
+        const unsigned int vid3 = mTessellatedIndices[faceVertexCount * faceId + 3];
 
         // texture coordinates for this quad
         Vec2f st0, st1, st2, st3;

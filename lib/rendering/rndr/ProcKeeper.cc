@@ -1,19 +1,32 @@
 // Copyright 2023-2025 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
-#include "ImageWriteCache.h"
-#include "ProcKeeper.h"
+#include <moonray/rendering/rndr/ImageWriteCache.h>
+#include <moonray/rendering/rndr/ProcKeeper.h>
 
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/rendering/mcrt_common/Util.h>
+#ifdef _WIN32
+// Put back the empty `far` / `near` macros scene_rdl2's DebugLog.h #undefs:
+// <winsock2.h>, reached through TimeUtil.h, still spells its pointers `FAR *`.
+#define far
+#define near
+#endif
 #include <scene_rdl2/render/util/TimeUtil.h>
 
 #include <iostream>
 #include <sstream>
+#include <thread>      // sleep_for
 
 #include <fcntl.h>
 #include <sys/stat.h>
+#ifdef _WIN32
+#include <filesystem>  // temp_directory_path()
+#include <io.h>        // _open(), _close(), _write(), _commit(), _unlink()
+#include <process.h>   // _getpid()
+#else
 #include <sys/types.h> // getpid()
 #include <unistd.h>    // usleep(), getpid()
+#endif
 
 // Enable debug messages regarding thread boot and write progress file information.
 //#define DEBUG_MSG
@@ -23,8 +36,25 @@
 // There is similar definition in side CheckpointSigIntHandler.h. Please check them.
 //#define TEST_SCENE_CONTEXT_DUMP
 
-// Definition of the filename uses for writing action progress update.
-#define WRITE_PROGRESS_UPDATE_FILE_NAME "/tmp/moonray_write."
+// Definition of the filename prefix used for writing action progress update.
+// Windows has no /tmp; the per-user temporary directory is its equivalent and is
+// resolved at run time (see setupImageWriteProgressFilename()).
+#define WRITE_PROGRESS_UPDATE_FILE_NAME "moonray_write."
+#ifdef _WIN32
+#define WRITE_PROGRESS_UPDATE_FILE_DIR (std::filesystem::temp_directory_path().string() + "/")
+#else
+#define WRITE_PROGRESS_UPDATE_FILE_DIR "/tmp/"
+#endif
+
+#ifdef _WIN32
+// The Windows spellings of the POSIX libc calls used below. _commit() is the
+// _open()-descriptor form of fsync(): it flushes the file's buffers to disk.
+#define open   _open
+#define close  _close
+#define write  _write
+#define unlink _unlink
+#define fsync  _commit
+#endif
 
 namespace moonray {
 namespace rndr {
@@ -124,7 +154,7 @@ ProcKeeper::finishImageWrite()
         mMainTaskCancel = true;
 
         while (!mThreadShutdown && mRunState != RunState::WAIT) {
-            usleep(500); // 0.5ms
+            std::this_thread::sleep_for(std::chrono::microseconds(500)); // 0.5ms
         }
     }
     mImageWriteCache = nullptr;
@@ -263,7 +293,8 @@ ProcKeeper::main()
             updateWriteProgressFile(progressSymbol(mImageWriteCache));
         }
 
-        usleep(static_cast<int>(sleepIntervalSec * 1000000.0f));
+        std::this_thread::sleep_for(
+            std::chrono::microseconds(static_cast<int>(sleepIntervalSec * 1000000.0f)));
     }
 
     ostr.str("");
@@ -275,7 +306,13 @@ void
 ProcKeeper::setupImageWriteProgressFilename()
 {
     std::ostringstream ostr;
-    ostr << WRITE_PROGRESS_UPDATE_FILE_NAME << static_cast<unsigned>(getpid()) << ".log";
+#ifdef _WIN32
+    const int myPid = _getpid();
+#else
+    const pid_t myPid = getpid();
+#endif
+    ostr << WRITE_PROGRESS_UPDATE_FILE_DIR << WRITE_PROGRESS_UPDATE_FILE_NAME
+         << static_cast<unsigned>(myPid) << ".log";
 
     mImageWriteProgressFilename = ostr.str();
 
@@ -293,7 +330,12 @@ ProcKeeper::openWriteProgressFileMain()
         scene_rdl2::logging::Logger::info(ostr.str());
     };
 
+#ifdef _WIN32
+    mImageWriteProgressFd = ::open(mImageWriteProgressFilename.c_str(),
+                                   _O_WRONLY | _O_CREAT, _S_IREAD);
+#else
     mImageWriteProgressFd = ::open(mImageWriteProgressFilename.c_str(), O_WRONLY | O_CREAT, S_IREAD);
+#endif
     if (mImageWriteProgressFd == -1) {
         return false;
     }

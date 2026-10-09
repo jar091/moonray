@@ -216,7 +216,7 @@ protected:
                                           float vertexW3,
                                           const mcrt_common::Ray &ray) const;
 
-    bool faceHasAssignment(uint faceId);
+    bool faceHasAssignment(unsigned int faceId);
 
     template<typename T> void
     computeVaryingAttributeDerivatives(shading::TypedAttributeKey<T> key,

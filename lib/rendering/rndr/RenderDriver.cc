@@ -6,14 +6,14 @@
 // TODO: Can we remove this header inclusion?  Or at least explain why it's needed?
 #include <scene_rdl2/render/util/AtomicFloat.h> // Needs to be included before any OpenImageIO file
 
-#include "AdaptiveRenderTilesTable.h"
-#include "PathVisualizerManager.h"
-#include "PixelBufferUtils.h"
-#include "RenderContext.h"
-#include "RenderDriver.h"
-#include "RenderOutputDriver.h"
-#include "RenderOutputHelper.h"
-#include "TileScheduler.h"
+#include <moonray/rendering/rndr/AdaptiveRenderTilesTable.h>
+#include <moonray/rendering/rndr/PathVisualizerManager.h>
+#include <moonray/rendering/rndr/PixelBufferUtils.h>
+#include <moonray/rendering/rndr/RenderContext.h>
+#include <moonray/rendering/rndr/RenderDriver.h>
+#include <moonray/rendering/rndr/RenderOutputDriver.h>
+#include <moonray/rendering/rndr/RenderOutputHelper.h>
+#include <moonray/rendering/rndr/TileScheduler.h>
 
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/rendering/shading/ShadingTLState.h>
@@ -22,6 +22,7 @@
 #include <moonray/rendering/mcrt_common/AffinityManager.h>
 #include <moonray/rendering/pbr/core/Aov.h>
 #include <moonray/rendering/pbr/core/Scene.h>
+#include <moonray/rendering/pbr/core/PbrTLState.h>
 #include <moonray/rendering/pbr/handlers/XPURayHandlers.h>
 #include <moonray/rendering/rt/gpu/GPUAccelerator.h>
 #include <scene_rdl2/common/fb_util/VariablePixelBuffer.h>
@@ -35,6 +36,21 @@
 
 #include <random>
 #include <thread>
+
+#ifdef _WIN32
+#include <io.h>                 // _isatty
+#include <cstdio>               // _fileno
+// There is no fixed descriptor number on Windows; _fileno(stdout) is the
+// equivalent of the POSIX STDOUT_FILENO constant.
+#define isatty _isatty
+#define STDOUT_FILENO _fileno(stdout)
+#else
+#include <unistd.h>             // isatty, STDOUT_FILENO
+#endif
+
+#ifdef _WIN32
+#define PATH_MAX _MAX_PATH
+#endif
 
 // Quick way to force a single sample per pixel. For debugging.
 // This define doesn't affect realtime mode.
@@ -58,11 +74,16 @@ using namespace scene_rdl2::util;
 // using namespace scene_rdl2::math; // can't use this as it breaks openvdb in clang.
 using scene_rdl2::logging::Logger;
 
-// Can be called from C++ and ISPC
-extern "C" bool isRenderCanceled()
+namespace {
+// The predicate behind isRenderCanceled(). That C entry point is defined in
+// rendering_pbr - which this library links, so it cannot call back here - and
+// dispatches through the callback installed by initRenderDriver() below. Same
+// answer, same call site, no library cycle.
+bool renderCanceledPredicate()
 {
     const bool canceled = moonray::rndr::gCancelFlag.isCanceled();
     return canceled;
+}
 }
 
 namespace moonray {
@@ -2488,6 +2509,12 @@ initRenderDriver(const TLSInitParams &initParams)
     // If this assertion triggers it means we've already called initRenderDriver
     // in this application. It should only ever be called once.
     MNRY_ASSERT_REQUIRE(gRenderDriver == nullptr);
+
+    // rendering_pbr owns the isRenderCanceled() entry point but not the flag;
+    // hand it our predicate. Before this point the flag is unset, so the
+    // library's default answer (false) is the same one it gives afterwards.
+    pbr::setRenderCanceledCallback(&renderCanceledPredicate);
+
     MOONRAY_THREADSAFE_STATIC_WRITE(gRenderDriver.reset(new RenderDriver(initParams)));
 }
 

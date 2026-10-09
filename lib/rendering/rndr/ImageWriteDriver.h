@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include "ImageWriteCache.h"
+#include <moonray/rendering/rndr/ImageWriteCache.h>
 
 #include <atomic>
 #include <condition_variable>
@@ -29,6 +29,23 @@ public:
 
     enum class ThreadState : int { INIT, IDLE, BUSY };
 
+#ifdef _WIN32
+    // Windows has no siginfo_t. Its equivalent notification is the console
+    // control handler installed by CheckpointSigIntHandler, which is told which
+    // control event fired and nothing else - the OS does not report a sending
+    // process or user. The fields the platform genuinely cannot answer are
+    // reported as -1 rather than being invented.
+    struct SigInfo
+    {
+        int si_signo {0};  // CTRL_C_EVENT, CTRL_BREAK_EVENT, CTRL_CLOSE_EVENT, ...
+        int si_code {-1};  // not available on this platform
+        int si_pid {-1};   // not available on this platform
+        int si_uid {-1};   // not available on this platform
+    };
+#else
+    using SigInfo = siginfo_t;
+#endif
+
     static void init();
     static ImageWriteDriverShPtr get();
 
@@ -51,7 +68,7 @@ public:
     void setRenderContext(RenderContext* renderContext) { mRenderContext = renderContext; }
 
     // Called from signal handler. This function should consists of async-signal-safe operations.
-    void interruptBySignal(const siginfo_t& sigInfo);
+    void interruptBySignal(const SigInfo& sigInfo);
 
     //------------------------------
 
@@ -124,7 +141,7 @@ public:
     // signal interruption related parameters
     //
     std::atomic<bool> mSigReceived {false};
-    siginfo_t mSigInfo; // received signal information
+    SigInfo mSigInfo; // received signal information
     time_t mSigTime {0}; // signal received time
 
     RenderContext* mRenderContext {nullptr}; // signalAction() uses this pointer

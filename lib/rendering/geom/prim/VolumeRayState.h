@@ -12,6 +12,8 @@
 #include <moonray/rendering/geom/prim/VolumeSampleInfo.h>
 #include <moonray/rendering/geom/prim/VolumeTransition.h>
 
+#include <array>
+
 namespace moonray {
 namespace geom {
 namespace internal {

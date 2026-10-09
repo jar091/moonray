@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "StereoView.h"
+#include <moonray/rendering/pbr/camera/StereoView.h>
 
 #include <moonray/rendering/shading/AttributeKey.h>
 #include <moonray/rendering/mcrt_common/Frustum.h>

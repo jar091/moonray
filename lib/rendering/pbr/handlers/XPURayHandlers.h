@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "RayHandlers.h"
+#include <moonray/rendering/pbr/handlers/RayHandlers.h>
 #include <moonray/rendering/rt/gpu/GPURay.h>
 #include <atomic>
 

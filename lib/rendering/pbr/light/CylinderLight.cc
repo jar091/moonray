@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "CylinderLight.h"
+#include <moonray/rendering/pbr/light/CylinderLight.h>
 #include <moonray/rendering/pbr/core/Distribution.h>
 #include <moonray/rendering/pbr/core/RayState.h>
 #include <moonray/rendering/pbr/core/Util.h>

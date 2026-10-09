@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "QuadMesh.h"
+#include <moonray/rendering/geom/prim/QuadMesh.h>
 
 #include <moonray/rendering/geom/prim/MeshTessellationUtil.h>
 

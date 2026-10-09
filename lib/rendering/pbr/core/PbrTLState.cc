@@ -1,17 +1,18 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
-#include "PbrTLState.h"
-#include "RayState.h"
-#include "XPUOcclusionRayQueue.h"
-#include "XPURayQueue.h"
+#include <moonray/rendering/pbr/core/PbrTLState.h>
+#include <moonray/rendering/pbr/core/RayState.h>
+#include <moonray/rendering/pbr/core/XPUOcclusionRayQueue.h>
+#include <moonray/rendering/pbr/core/XPURayQueue.h>
 #include <moonray/rendering/mcrt_common/AffinityManager.h>
 #include <moonray/rendering/pbr/handlers/RayHandlers.h>
 #include <moonray/rendering/shading/Types.h>
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
-#include <tbb/mutex.h>
 
+#include <atomic>
 #include <cstdlib> // abort()
 #include <limits>
+#include <mutex>
 
 // These aren't free so only turn it on if you are doing memory profiling.
 // This will print out the peak number of pool items used for a particular run.
@@ -26,7 +27,20 @@
 // We should be commented out for the release version
 //#define STRICT_CHECK_FOR_GETPOOLINFO
 
-extern "C" bool isRenderCanceled();
+namespace {
+// See moonray::pbr::setRenderCanceledCallback(): rendering_rndr owns the
+// cancellation flag but links this library, so it installs the predicate here
+// instead of this library calling into it.
+std::atomic<moonray::pbr::RenderCanceledFn> gRenderCanceledFn{nullptr};
+}
+
+// Called from this library's C++ and ISPC code alike, and by rendering_rndr
+// through the declaration in RenderDriver.h.
+extern "C" bool isRenderCanceled()
+{
+    const moonray::pbr::RenderCanceledFn fn = gRenderCanceledFn.load(std::memory_order_relaxed);
+    return fn ? fn() : false;
+}
 
 namespace ispc {
 extern "C" uint32_t PbrTLState_hudValidation(bool);
@@ -184,7 +198,7 @@ PoolInfo::init(const size_t poolSize, // Whole poolSize for MoonRay process, not
     // poolSize * 8 seems to be adequate, so for safety poolSize * 16 is used as the
     // minimum number of totalEntries.
     size_t totalEntries = poolSize * static_cast<size_t>(std::max(numThreads, 16u));
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     if (mNumaNodeId != ~0) {
         //
         // Memory Affinity enabled
@@ -200,7 +214,7 @@ PoolInfo::init(const size_t poolSize, // Whole poolSize for MoonRay process, not
 
         currNumThreads = activeThreadCount;
     }
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
     const size_t entryStride = entrySize;
     const size_t entriesPerBlock = scene_rdl2::alloc::MemBlock::getNumEntries();
@@ -223,9 +237,9 @@ PoolInfo::init(const size_t poolSize, // Whole poolSize for MoonRay process, not
     // scene_rdl2::logging::Logger::info("Attempting to allocate ", entryMemorySize, " bytes for ",
     //                                   mPoolName.c_str(), " pool.\n");
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     if (mNumaNodeId == ~0) { 
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
         //
         // Memory Affinity disabled
         //
@@ -233,7 +247,7 @@ PoolInfo::init(const size_t poolSize, // Whole poolSize for MoonRay process, not
         mBlockMemory = scene_rdl2::util::alignedMallocArrayCtor<scene_rdl2::alloc::MemBlock>(numBlocks, CACHE_LINE_SIZE);
         mMemBlockManager = scene_rdl2::util::alignedMallocCtor<scene_rdl2::alloc::MemBlockManager>(CACHE_LINE_SIZE);
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     } else {
         //
         // Memory Affinity enabled
@@ -266,7 +280,7 @@ PoolInfo::init(const size_t poolSize, // Whole poolSize for MoonRay process, not
             scene_rdl2::util::alignedMallocCtorBasis<scene_rdl2::alloc::MemBlockManager>
             (CACHE_LINE_SIZE, numaNodeAlloc);
     }
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
     MNRY_VERIFY(mMemBlockManager);
     if (numBlocks > std::numeric_limits<unsigned>::max()) {
         std::cerr << "FATAL-ERROR : " << __FILE__ << " " << __LINE__ << " " << __FUNCTION__
@@ -322,9 +336,9 @@ PoolInfo::init(const size_t poolSize, // Whole poolSize for MoonRay process, not
 void
 PoolInfo::cleanUp()
 {
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     if (mNumaNodeId == ~0) {
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
         //
         // Memory Affinity disabled
         //
@@ -332,7 +346,7 @@ PoolInfo::cleanUp()
         scene_rdl2::util::alignedFreeArray(mBlockMemory);
         scene_rdl2::util::alignedFreeArray(mEntryMemory);
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     } else {
         //
         // Memory Affinity enabled
@@ -354,7 +368,7 @@ PoolInfo::cleanUp()
                 currNumaNode->free(const_cast<void*>(ptr), mEntryMemoryAllocatedSize);
             });
     }
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
     mMemBlockManager = nullptr;
     mBlockMemory = nullptr;
     mEntryMemory = nullptr;
@@ -851,15 +865,15 @@ TLState::TLState(mcrt_common::ThreadLocalState *tls,
 {
     const unsigned numaNodeId = tls->mArena.getNumaNodeId();
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     if (numaNodeId == ~0) {
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
         //
         // Memory Affinity disabled
         //
         mExclusiveAccumulators = scene_rdl2::util::alignedMallocCtor<ExclusiveAccumulators>(CACHE_LINE_SIZE);
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     } else {
         //
         // Memory Affinity enabled
@@ -881,7 +895,7 @@ TLState::TLState(mcrt_common::ThreadLocalState *tls,
         mExclusiveAccumulators = 
             scene_rdl2::util::alignedMallocCtorBasis<ExclusiveAccumulators>(CACHE_LINE_SIZE, numaNodeAlloc);
     }
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
     if (okToAllocBundledResources) {
         const unsigned numaNodeId = tls->mArena.getNumaNodeId();
@@ -895,7 +909,7 @@ TLState::TLState(mcrt_common::ThreadLocalState *tls,
             mCL1Pool.init(gPoolData.getCL1(numaNodeId)->getMemBlockManager());
         }
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
         const scene_rdl2::grid_util::NumaNode* currNumaNode = nullptr;
         if (numaNodeId != ~0) {
             //
@@ -916,20 +930,20 @@ TLState::TLState(mcrt_common::ThreadLocalState *tls,
                 exit(1);
             }
         }
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
         // callback procedure for memory allocation, alignment size check have been done already
         // if Mem-affinity is on.
-#ifdef PLATFORM_APPLE
+#ifndef PLATFORM_LINUX // Apple + Windows: no NUMA memory affinity
         auto memAllocCallBack = [&](size_t size, size_t alignment) -> void* {
             return scene_rdl2::util::alignedMalloc(size, alignment); // Memory Affinity disabled
         };
-#else // else PLATFORM_APPLE
+#else // else of !PLATFORM_LINUX (NUMA path)
         auto memAllocCallBack = [&](size_t size, size_t alignment) -> void* {
             if (!currNumaNode) return scene_rdl2::util::alignedMalloc(size, alignment); // Memory Affinity disabled
             else return currNumaNode->alloc(size); // Memory Affinity enabled
         };
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
         
         // Allocate ray queue (contains RayState* pointers).
         if (initParams.mRayQueueSize) {
@@ -1012,9 +1026,9 @@ TLState::~TLState()
 {
     const unsigned numaNodeId = mTopLevelTls->mArena.getNumaNodeId();
  
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     if (numaNodeId == ~0) {
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
         //
         // Memory Affinity disabled
         //
@@ -1031,7 +1045,7 @@ TLState::~TLState()
 
         scene_rdl2::util::alignedFreeDtor(mExclusiveAccumulators);
 
-#ifndef PLATFORM_APPLE
+#ifdef PLATFORM_LINUX
     } else {
         //
         // Memory Affinity enabled
@@ -1099,7 +1113,7 @@ TLState::~TLState()
                 currNumaNode->free(const_cast<void*>(ptr), sizeof(ExclusiveAccumulators));
             });
     }
-#endif // end of Non PLATFORM_APPLE
+#endif // end of PLATFORM_LINUX (NUMA/affinity is Linux-only)
 
     mRayStatePool.cleanUp();
     mCL1Pool.cleanUp();
@@ -1820,6 +1834,12 @@ void heatMapBundledUpdate(TLState *pbrTls,
 }
 
 HUD_VALIDATOR( PbrTLState );
+
+void
+setRenderCanceledCallback(RenderCanceledFn fn)
+{
+    gRenderCanceledFn.store(fn, std::memory_order_relaxed);
+}
 
 //-----------------------------------------------------------------------------
 

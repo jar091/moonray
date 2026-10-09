@@ -3,8 +3,8 @@
 
 //
 //
-#include "TileWorkQueue.h"
-#include "TileWorkQueueRuntimeVerify.h"
+#include <moonray/rendering/rndr/TileWorkQueue.h>
+#include <moonray/rendering/rndr/TileWorkQueueRuntimeVerify.h>
 
 #include <moonray/rendering/pbr/Types.h>
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>

@@ -6,8 +6,74 @@
 
 #include <time.h>
 
+#if defined(_WIN32)
+#include <cstdint>
+#include <windows.h>
+#endif
+
 namespace moonray {
 namespace mcrt_common {
+
+#if defined(_WIN32)
+
+// The UCRT declares struct timespec but none of POSIX's clock ids, and it has
+// no clock_gettime(). These are namespace-local, so they neither collide with
+// nor leak into anything else; ordinary lookup from Clock below finds them on
+// Windows and the POSIX ones everywhere else.
+//
+// Each id has an exact Win32 equivalent: thread and process CPU time are
+// GetThreadTimes()/GetProcessTimes() (kernel + user, in 100 ns ticks, which is
+// what CLOCK_*_CPUTIME_ID measures), and monotonic time is
+// QueryPerformanceCounter().
+using clockid_t = int;
+
+enum : clockid_t
+{
+    CLOCK_REALTIME           = 0,
+    CLOCK_MONOTONIC          = 1,
+    CLOCK_PROCESS_CPUTIME_ID = 2,
+    CLOCK_THREAD_CPUTIME_ID  = 3
+};
+
+inline int clock_gettime(clockid_t clkId, struct timespec* ts)
+{
+    FILETIME creation, exit, kernel, user;
+
+    switch (clkId) {
+    case CLOCK_THREAD_CPUTIME_ID:
+        if (!::GetThreadTimes(::GetCurrentThread(), &creation, &exit, &kernel, &user)) {
+            return -1;
+        }
+        break;
+    case CLOCK_PROCESS_CPUTIME_ID:
+        if (!::GetProcessTimes(::GetCurrentProcess(), &creation, &exit, &kernel, &user)) {
+            return -1;
+        }
+        break;
+    default: {
+        LARGE_INTEGER frequency, counter;
+        if (!::QueryPerformanceFrequency(&frequency) || !::QueryPerformanceCounter(&counter)) {
+            return -1;
+        }
+        ts->tv_sec  = static_cast<time_t>(counter.QuadPart / frequency.QuadPart);
+        ts->tv_nsec = static_cast<long>(((counter.QuadPart % frequency.QuadPart) * 1000000000LL) /
+                                        frequency.QuadPart);
+        return 0;
+    }
+    }
+
+    const std::uint64_t kernel100ns =
+        (static_cast<std::uint64_t>(kernel.dwHighDateTime) << 32) | kernel.dwLowDateTime;
+    const std::uint64_t user100ns =
+        (static_cast<std::uint64_t>(user.dwHighDateTime) << 32) | user.dwLowDateTime;
+    const std::uint64_t total100ns = kernel100ns + user100ns;
+
+    ts->tv_sec  = static_cast<time_t>(total100ns / 10000000ull);
+    ts->tv_nsec = static_cast<long>((total100ns % 10000000ull) * 100ull);
+    return 0;
+}
+
+#endif // _WIN32
 
 /// @brief an RAII interface to unix clock_gettime()
 /// Usage:

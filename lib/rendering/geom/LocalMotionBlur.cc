@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "LocalMotionBlur.h"
+#include <moonray/rendering/geom/LocalMotionBlur.h>
 
 #include <iomanip>
 

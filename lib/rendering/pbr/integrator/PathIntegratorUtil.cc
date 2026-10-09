@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "PathIntegratorUtil.h"
+#include <moonray/rendering/pbr/integrator/PathIntegratorUtil.h>
 
 #include <moonray/rendering/shading/Intersection.h>
 #include <moonray/rendering/geom/IntersectionInit.h>

@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "gphash.h"
-#include "SamplingConstants.h"
+#include <moonray/rendering/pbr/sampler/gphash.h>
+#include <moonray/rendering/pbr/sampler/SamplingConstants.h>
 
 #include <scene_rdl2/common/platform/Platform.h>
 

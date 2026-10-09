@@ -3,7 +3,7 @@
 
 //
 //
-#include "SampleIdBuff.h"
+#include <moonray/rendering/rndr/SampleIdBuff.h>
 
 #include <iomanip>
 #include <sstream>

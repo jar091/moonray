@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "ActivePixelMask.h"
-#include "AdaptiveRegionTree.h"
-#include "OverlappingRegions.h"
-#include "UpdateSentinel.h"
+#include <moonray/rendering/rndr/adaptive/ActivePixelMask.h>
+#include <moonray/rendering/rndr/adaptive/AdaptiveRegionTree.h>
+#include <moonray/rendering/rndr/adaptive/OverlappingRegions.h>
+#include <moonray/rendering/rndr/adaptive/UpdateSentinel.h>
 
 #include <moonray/common/mcrt_util/MutexPool2D.h>
 #include <moonray/rendering/mcrt_common/ProfileAccumulatorHandles.h>

@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "EvalShader.h"
+#include <moonray/rendering/shading/EvalShader.h>
 
 #include <moonray/rendering/shading/AovLabels.h>
 #include <moonray/rendering/shading/bsdf/Bsdf.h>

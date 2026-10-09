@@ -8,7 +8,7 @@
 
 #include "CPPSupport.h"
 #include "Finally.h"
-#include "Wait.h"
+#include <moonray/common/mcrt_util/Wait.h>
 
 #include <atomic>
 #include <cassert>

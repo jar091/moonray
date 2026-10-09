@@ -3,7 +3,7 @@
 
 //
 //
-#include "DebugSamplesRecArray.h"
+#include <moonray/rendering/rndr/DebugSamplesRecArray.h>
 
 #include <scene_rdl2/scene/rdl2/ValueContainerDeq.h>
 #include <scene_rdl2/scene/rdl2/ValueContainerEnq.h>

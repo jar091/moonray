@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "ShadingTLState.hh"
+#include <moonray/rendering/shading/ShadingTLState.hh>
 
 #include <moonray/rendering/shading/AttributeTable.h>
 #include <moonray/rendering/shading/RootShader.h>

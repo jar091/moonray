@@ -5,7 +5,7 @@
 /// @file VdbVolume.cc
 ///
 
-#include "VdbVolume.h"
+#include <moonray/rendering/geom/VdbVolume.h>
 
 #include <moonray/rendering/geom/PrimitiveVisitor.h>
 #include <moonray/rendering/geom/ProceduralContext.h>

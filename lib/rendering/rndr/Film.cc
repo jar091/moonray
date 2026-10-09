@@ -4,11 +4,11 @@
 //
 //
 
-#include "Film.h"
-#include "AdaptiveRenderTileInfo.h"
-#include "AdaptiveRenderTilesTable.h"
-#include "PixelBufferUtils.h"
-#include "Util.h"
+#include <moonray/rendering/rndr/Film.h>
+#include <moonray/rendering/rndr/AdaptiveRenderTileInfo.h>
+#include <moonray/rendering/rndr/AdaptiveRenderTilesTable.h>
+#include <moonray/rendering/rndr/PixelBufferUtils.h>
+#include <moonray/rendering/rndr/Util.h>
 
 #include <moonray/common/mcrt_util/Atomic.h>
 

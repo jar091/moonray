@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "AttributeOverrides.h"
+#include <moonray/rendering/rndr/AttributeOverrides.h>
 
-#include "RenderOptions.h"
-#include "RenderStatistics.h"
+#include <moonray/rendering/rndr/RenderOptions.h>
+#include <moonray/rendering/rndr/RenderStatistics.h>
 
 #include <scene_rdl2/render/logging/logging.h>
 #include <scene_rdl2/common/except/exceptions.h>

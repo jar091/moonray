@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "SamplingConstants.h"
+#include <moonray/rendering/pbr/sampler/SamplingConstants.h>
 
 #include <limits>
 

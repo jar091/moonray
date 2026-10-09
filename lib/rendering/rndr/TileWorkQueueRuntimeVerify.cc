@@ -3,7 +3,7 @@
 
 //
 //
-#include "TileWorkQueueRuntimeVerify.h"
+#include <moonray/rendering/rndr/TileWorkQueueRuntimeVerify.h>
 
 #ifdef RUNTIME_VERIFY_TILE_WORK_QUEUE
 

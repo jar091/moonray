@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "FileResource.h"
+#include <moonray/common/file_resource/FileResource.h>
 #include <string>
 
 /** UNIX implementation of FileResource interface

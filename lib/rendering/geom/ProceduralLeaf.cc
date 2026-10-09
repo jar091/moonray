@@ -5,7 +5,7 @@
 /// @file ProceduralLeaf.cc
 /// $Id$
 ///
-#include "ProceduralLeaf.h"
+#include <moonray/rendering/geom/ProceduralLeaf.h>
 
 #include <moonray/rendering/geom/Api.h>
 #include <moonray/rendering/geom/Primitive.h>

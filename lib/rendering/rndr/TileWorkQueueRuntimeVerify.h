@@ -5,11 +5,11 @@
 //
 #pragma once
 
-#include "RunTimeVerify.h"
+#include <moonray/rendering/rndr/RunTimeVerify.h>
 
 #ifdef RUNTIME_VERIFY_TILE_WORK_QUEUE
 
-#include "TileWorkQueue.h"
+#include <moonray/rendering/rndr/TileWorkQueue.h>
 
 #include <mutex>
 #include <vector>

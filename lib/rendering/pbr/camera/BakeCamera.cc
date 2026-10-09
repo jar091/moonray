@@ -5,7 +5,7 @@
 
 #include <moonray/rendering/geom/prim/Mesh.h>
 
-#include "BakeCamera.h"
+#include <moonray/rendering/pbr/camera/BakeCamera.h>
 
 #include <moonray/rendering/shading/AttributeKey.h>
 #include <moonray/rendering/geom/PolygonMesh.h>

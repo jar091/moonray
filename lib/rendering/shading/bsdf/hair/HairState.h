@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "HairUtil.h"
+#include <moonray/rendering/shading/bsdf/hair/HairUtil.h>
 
 //#include <moonray/rendering/shading/ispc/bsdf/hair/BsdfHair_ispc_stubs.h>
 #include <scene_rdl2/common/math/Color.h>

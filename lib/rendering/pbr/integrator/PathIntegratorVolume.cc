@@ -5,13 +5,13 @@
 /// @file PathIntegratorVolume.cc
 ///
 
-#include "PathIntegrator.h"
-#include "PathIntegratorUtil.h"
-#include "BsdfOneSampler.h"
-#include "VolumeProperties.h"
+#include <moonray/rendering/pbr/integrator/PathIntegrator.h>
+#include <moonray/rendering/pbr/integrator/PathIntegratorUtil.h>
+#include <moonray/rendering/pbr/integrator/BsdfOneSampler.h>
+#include <moonray/rendering/pbr/integrator/VolumeProperties.h>
 #include "VolumeScatterEventSampler.h"
 #include "VolumeScatteringSampler.h"
-#include "VolumeTransmittance.h"
+#include <moonray/rendering/pbr/integrator/VolumeTransmittance.h>
 #include "VolumeEmissionBsdfSampler.h"
 #include "VolumeEmissionLightSampler.h"
 #include <moonray/rendering/pbr/core/Constants.h>

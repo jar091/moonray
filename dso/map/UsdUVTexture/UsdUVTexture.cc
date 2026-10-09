@@ -12,6 +12,7 @@
 #include <moonray/rendering/shading/MapApi.h>
 #include <moonray/rendering/shading/UdimTexture.h>
 #include <scene_rdl2/render/util/stdmemory.h>
+#include <mutex>
 
 using namespace moonray::shading;
 using namespace scene_rdl2;
@@ -54,8 +55,8 @@ UsdUVTexture::UsdUVTexture(const scene_rdl2::rdl2::SceneClass &sceneClass, const
     // to allow for the possibility that we may someday create these maps
     // on multiple threads, we'll protect the writes of the class statics
     // with a mutex.
-    static tbb::mutex errorMutex;
-    tbb::mutex::scoped_lock lock(errorMutex);
+    static std::mutex errorMutex;
+    std::lock_guard<std::mutex> lock(errorMutex);
     MOONRAY_START_THREADSAFE_STATIC_WRITE
     sStaticUsdUVTextureData.sErrorInvalidUdimCoord =
         sLogEventRegistry.createEvent(scene_rdl2::logging::ERROR_LEVEL,

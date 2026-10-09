@@ -6,8 +6,8 @@
 /// $Id$
 ///
 
-#include "HairState.h"
-#include "BsdfHairDiffuse.h"
+#include <moonray/rendering/shading/bsdf/hair/HairState.h>
+#include <moonray/rendering/shading/bsdf/hair/BsdfHairDiffuse.h>
 #include <moonray/rendering/shading/bsdf/BsdfSlice.h>
 #include <moonray/rendering/shading/Util.h>
 

@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "Bsdf.h"
-#include "BsdfSlice.h"
+#include <moonray/rendering/shading/bsdf/Bsdf.h>
+#include <moonray/rendering/shading/bsdf/BsdfSlice.h>
 
 #include <scene_rdl2/common/math/ispc/Typesv.h>
 #include <scene_rdl2/common/math/Vec3.h>

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../GPURay.h"
+#include <moonray/rendering/rt/gpu/GPURay.h>
 
 #ifndef __APPLE__
 #include <optix.h>

@@ -11,7 +11,7 @@
 //=============================================================================
 
 #include "DcxDeepPixel.h"
-#include "DcxChannelContext.h"
+#include <moonray/deepfile/DcxChannelContext.h>
 
 #include <OpenEXR/ImfHeader.h>
 

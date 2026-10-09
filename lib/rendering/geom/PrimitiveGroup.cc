@@ -5,7 +5,7 @@
 /// @file PrimitiveGroup.cc
 /// $Id$
 ///
-#include "PrimitiveGroup.h"
+#include <moonray/rendering/geom/PrimitiveGroup.h>
 
 #include <moonray/rendering/geom/PrimitiveVisitor.h>
 #include <moonray/rendering/geom/ProceduralContext.h>

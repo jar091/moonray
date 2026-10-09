@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "NamedPrimitive.h"
+#include <moonray/rendering/geom/prim/NamedPrimitive.h>
 
 #include <moonray/rendering/geom/prim/VolumeSampleInfo.h>
 #include <scene_rdl2/scene/rdl2/VisibilityFlags.h>

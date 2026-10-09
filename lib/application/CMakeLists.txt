@@ -9,9 +9,15 @@ set(exportGroup ${PROJECT_NAME}Targets)
 add_library(${component} SHARED "")
 add_library(${PROJECT_NAME}::${component} ALIAS ${component})
 
+# ChangeWatcher::CreateChangeWatcher() has one implementation per platform:
+# FSEvents on macOS, inotify on Linux, ReadDirectoryChangesW on Windows. The
+# historical `else(IsLinuxPlatform)` was decorative - it is a plain else - so
+# Windows was being handed the inotify implementation.
 if(IsDarwinPlatform)
     set(PlatformSpecificSources macos/ChangeWatcherImpl.mm)
-else(IsLinuxPlatform)
+elseif(IsWindowsPlatform)
+    set(PlatformSpecificSources windows/ChangeWatcherImpl.cc)
+else()
     set(PlatformSpecificSources linux/ChangeWatcherImpl.cc)
 endif()
 

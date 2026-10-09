@@ -183,7 +183,10 @@ public:
                           ispc::COLOR_RAMP_CONTROL_SPACE_RGB);
     }
 
-    finline scene_rdl2::math::Color eval(const BsdfSlice &slice,
+    // not finline: the definition lives in BsdfToon.cc, so the always-inline
+    // hint cannot apply and it makes MSVC give the out-of-line definition
+    // inline linkage (unresolved external at every call site)
+    scene_rdl2::math::Color eval(const BsdfSlice &slice,
                              const scene_rdl2::math::Vec3f &wi,
                              float *pdf = NULL) const override;
 

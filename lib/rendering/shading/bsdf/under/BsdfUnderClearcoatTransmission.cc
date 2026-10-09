@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "BsdfUnderClearcoatTransmission.h"
+#include <moonray/rendering/shading/bsdf/under/BsdfUnderClearcoatTransmission.h>
 #include <moonray/rendering/shading/Util.h>
 
 #include <moonray/rendering/shading/ispc/bsdf/under/BsdfUnderClearcoatTransmission_ispc_stubs.h>

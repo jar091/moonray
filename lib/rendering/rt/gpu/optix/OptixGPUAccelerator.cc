@@ -927,10 +927,17 @@ OptixGPUAccelerator::OptixGPUAccelerator(bool allowUnsupportedFeatures,
 
     mPipeline.resize(mNumCPUThreads, nullptr);
     for (int i = 0; i < mNumCPUThreads; i++) {
+        // OptiX 8 removed OptixPipelineLinkOptions::debugLevel; maxTraceDepth
+        // is all that is left.
+#if OPTIX_VERSION >= 80000
+        const OptixPipelineLinkOptions pipelineLinkOptions = { 1 };
+#else
+        const OptixPipelineLinkOptions pipelineLinkOptions =
+            { 1, OPTIX_COMPILE_DEBUG_LEVEL_NONE };
+#endif
         if (!createOptixPipeline(mContext,
                                 pipelineCompileOptions,
-                                { 1, // maxTraceDepth
-                                OPTIX_COMPILE_DEBUG_LEVEL_NONE },
+                                pipelineLinkOptions,
                                 mProgramGroups,
                                 &(mPipeline[i]),
                                 errorMsg)) {

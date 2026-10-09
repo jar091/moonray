@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include "PixelFilter.h"
-#include "PixelScramble.h"
-#include "Sample.h"
-#include "SamplingAlgorithms.h"
-#include "SamplingConstants.h"
-#include "SequenceID.h"
-#include "SlidingWindowCache.h"
+#include <moonray/rendering/pbr/sampler/PixelFilter.h>
+#include <moonray/rendering/pbr/sampler/PixelScramble.h>
+#include <moonray/rendering/pbr/sampler/Sample.h>
+#include <moonray/rendering/pbr/sampler/SamplingAlgorithms.h>
+#include <moonray/rendering/pbr/sampler/SamplingConstants.h>
+#include <moonray/rendering/pbr/sampler/SequenceID.h>
+#include <moonray/rendering/pbr/sampler/SlidingWindowCache.h>
 
 #include <moonray/rendering/pbr/sampler/Sampling_ispc_stubs.h>
 #include <scene_rdl2/render/util/BitUtils.h>
@@ -467,11 +467,11 @@ private:
 
     typedef std::array<float, kSIMDSize> SIMDFloatArray;
 
-    __attribute__((aligned(static_cast<int>(kSIMDAlignment)))) SIMDFloatArray mPixelX;
-    __attribute__((aligned(static_cast<int>(kSIMDAlignment)))) SIMDFloatArray mPixelY;
-    __attribute__((aligned(static_cast<int>(kSIMDAlignment)))) SIMDFloatArray mLensU;
-    __attribute__((aligned(static_cast<int>(kSIMDAlignment)))) SIMDFloatArray mLensV;
-    __attribute__((aligned(static_cast<int>(kSIMDAlignment)))) SIMDFloatArray mTime;
+    alignas(static_cast<int>(kSIMDAlignment)) SIMDFloatArray mPixelX;
+    alignas(static_cast<int>(kSIMDAlignment)) SIMDFloatArray mPixelY;
+    alignas(static_cast<int>(kSIMDAlignment)) SIMDFloatArray mLensU;
+    alignas(static_cast<int>(kSIMDAlignment)) SIMDFloatArray mLensV;
+    alignas(static_cast<int>(kSIMDAlignment)) SIMDFloatArray mTime;
 
 #ifndef __clang__
     static_assert(__alignof(mPixelX) == kSIMDAlignment, "SIMD alignment.");

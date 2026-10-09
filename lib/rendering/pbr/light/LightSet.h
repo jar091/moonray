@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "Light.h"
-#include "LightAccelerator.h"
+#include <moonray/rendering/pbr/light/Light.h>
+#include <moonray/rendering/pbr/light/LightAccelerator.h>
 #include "LightSet.hh"
 #include <moonray/rendering/pbr/core/PbrTLState.h>
 #include <moonray/rendering/pbr/sampler/IntegratorSample.h>

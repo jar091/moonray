@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Points.h"
+#include <moonray/rendering/geom/prim/Points.h>
 
 #include <moonray/rendering/geom/prim/BVHUserData.h>
 #include <moonray/rendering/geom/prim/Instance.h>

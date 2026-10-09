@@ -5,8 +5,8 @@
 //
 #pragma once
 
-#include "OiioUtils.h"
-#include "Util.h"
+#include <moonray/rendering/rndr/OiioUtils.h>
+#include <moonray/rendering/rndr/Util.h>
 
 //#define SINGLE_THREAD
 

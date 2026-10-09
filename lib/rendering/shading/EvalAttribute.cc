@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "EvalAttribute.h"
+#include <moonray/rendering/shading/EvalAttribute.h>
 
 #include <moonray/rendering/shading/ThreadLocalObjectState.h>
 #include <moonray/rendering/mcrt_common/Util.h>

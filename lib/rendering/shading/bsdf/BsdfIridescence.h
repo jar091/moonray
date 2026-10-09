@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "Bsdf.h"
-#include "BsdfSlice.h"
+#include <moonray/rendering/shading/bsdf/Bsdf.h>
+#include <moonray/rendering/shading/bsdf/BsdfSlice.h>
 #include <moonray/rendering/shading/Util.h>
 #include <moonray/rendering/shading/Iridescence.h>
 #include <moonray/rendering/shading/RampControl.h>

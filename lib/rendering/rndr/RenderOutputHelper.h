@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "RenderOutputDriver.h"
+#include <moonray/rendering/rndr/RenderOutputDriver.h>
 #include <moonray/rendering/pbr/core/Aov.h>
 
 namespace moonray {

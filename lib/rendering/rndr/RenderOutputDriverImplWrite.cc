@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <scene_rdl2/render/util/AtomicFloat.h> // Needs to be included before any OpenImageIO file
-#include "ExrUtils.h"
-#include "ImageWriteCache.h"
-#include "ImageWriteDriver.h"
-#include "RenderContext.h"
-#include "RenderDriver.h"
-#include "RenderOutputDriverImpl.h"
-#include "RenderOutputWriter.h"
-#include "ResumeHistoryMetaData.h"
+#include <moonray/rendering/rndr/ExrUtils.h>
+#include <moonray/rendering/rndr/ImageWriteCache.h>
+#include <moonray/rendering/rndr/ImageWriteDriver.h>
+#include <moonray/rendering/rndr/RenderContext.h>
+#include <moonray/rendering/rndr/RenderDriver.h>
+#include <moonray/rendering/rndr/RenderOutputDriverImpl.h>
+#include <moonray/rendering/rndr/RenderOutputWriter.h>
+#include <moonray/rendering/rndr/ResumeHistoryMetaData.h>
 
 #include <moonray/rendering/pbr/core/DeepBuffer.h>
 #include <scene_rdl2/common/grid_util/Sha1Util.h>

@@ -3,11 +3,11 @@
 
 //
 //
-#include "Film.h"
-#include "OiioReader.h"
-#include "RenderContext.h"
-#include "RenderOutputDriverImpl.h"
-#include "RenderOutputHelper.h"
+#include <moonray/rendering/rndr/Film.h>
+#include <moonray/rendering/rndr/OiioReader.h>
+#include <moonray/rendering/rndr/RenderContext.h>
+#include <moonray/rendering/rndr/RenderOutputDriverImpl.h>
+#include <moonray/rendering/rndr/RenderOutputHelper.h>
 
 #include <moonray/rendering/mcrt_common/Clock.h>
 

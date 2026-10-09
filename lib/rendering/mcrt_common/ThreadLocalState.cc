@@ -3,8 +3,8 @@
 
 //
 //
-#include "ThreadLocalState.h"
-#include "ProfileAccumulatorHandles.h"
+#include <moonray/rendering/mcrt_common/ThreadLocalState.h>
+#include <moonray/rendering/mcrt_common/ProfileAccumulatorHandles.h>
 #include <moonray/common/mcrt_macros/moonray_static_check.h>
 #include <moonray/common/time/Ticker.h>
 #include <moonray/rendering/mcrt_common/AffinityManager.h>

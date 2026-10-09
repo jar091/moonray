@@ -33,7 +33,7 @@ public:
 
     size_t getVCount() const { return mVCount; }
 
-    const float *getVn(uint vId,
+    const float *getVn(unsigned int vId,
                        size_t timeIndex = 0) const {
         return (const float *)&mVnv[vId * mMotionSampleCount + timeIndex];
     }
@@ -64,10 +64,10 @@ protected:
     std::vector<Vec3f> mVtx; // input vtx position
     std::vector<Vec3f> mVnv; // vertex normals
 
-    std::vector<uint> mFVid; // face vertex id array
+    std::vector<unsigned int> mFVid; // face vertex id array
     std::vector<Vec3f> mFnv; // work memory for vn computation
 
-    std::vector< std::vector<uint> > mVFlink; // work memory for vn computation : vtx -> face link
+    std::vector< std::vector<unsigned int> > mVFlink; // work memory for vn computation : vtx -> face link
     bool mFixInvalid;
 };
 

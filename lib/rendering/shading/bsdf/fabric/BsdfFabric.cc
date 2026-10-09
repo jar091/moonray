@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "BsdfFabric.h"
+#include <moonray/rendering/shading/bsdf/fabric/BsdfFabric.h>
 
 namespace moonray {
 namespace shading {

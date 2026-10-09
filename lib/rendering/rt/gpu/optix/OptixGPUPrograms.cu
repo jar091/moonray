@@ -1,7 +1,11 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "../GPURay.h"
+// The canonical spelling, not "../GPURay.h": the same header is reached
+// through <moonray/rendering/rt/gpu/GPURay.h> from OptixGPUParams.h, and
+// nvcc does not recognise the two spellings as the same file for the
+// purposes of `#pragma once` ("class GPURay has already been defined").
+#include <moonray/rendering/rt/gpu/GPURay.h>
 #include "OptixGPUMath.h"
 #include "OptixGPUParams.h"
 #include "OptixGPUSBTRecord.h"

@@ -6,12 +6,12 @@
 /// $Id$
 ///
 
-#include "PathIntegrator.h"
-#include "PathIntegratorUtil.h"
+#include <moonray/rendering/pbr/integrator/PathIntegrator.h>
+#include <moonray/rendering/pbr/integrator/PathIntegratorUtil.h>
 
-#include "BsdfSampler.h"
-#include "LightSetSampler.h"
-#include "VolumeTransmittance.h"
+#include <moonray/rendering/pbr/integrator/BsdfSampler.h>
+#include <moonray/rendering/pbr/integrator/LightSetSampler.h>
+#include <moonray/rendering/pbr/integrator/VolumeTransmittance.h>
 #include <moonray/rendering/pbr/camera/Camera.h>
 #include <moonray/rendering/pbr/core/Aov.h>
 #include <moonray/rendering/pbr/core/Constants.h>

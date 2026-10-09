@@ -6,7 +6,7 @@
 /// $Id$
 ///
 //
-#include "BsdfToon.h"
+#include <moonray/rendering/shading/bsdf/npr/BsdfToon.h>
 #include <scene_rdl2/common/math/MathUtil.h>
 #include <moonray/rendering/shading/Util.h>
 

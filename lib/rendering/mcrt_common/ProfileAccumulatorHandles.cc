@@ -4,7 +4,7 @@
 //
 //
 
-#include "ProfileAccumulatorHandles.h"
+#include <moonray/rendering/mcrt_common/ProfileAccumulatorHandles.h>
 
 namespace moonray {
 namespace mcrt_common {

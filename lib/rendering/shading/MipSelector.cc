@@ -3,8 +3,8 @@
 
 /// @file MipSelector.h
 
-#include "MipSelector.h"
-#include "MipSelector.hh"
+#include <moonray/rendering/shading/MipSelector.h>
+#include <moonray/rendering/shading/MipSelector.hh>
 
 #include <scene_rdl2/common/math/MathUtil.h>
 

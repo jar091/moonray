@@ -1,7 +1,7 @@
 // Copyright 2025-2026 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "PathVisualizerManager.h"
+#include <moonray/rendering/rndr/PathVisualizerManager.h>
 
 #include <scene_rdl2/common/grid_util/PathVisSimGlobalInfo.h>
 #include <scene_rdl2/common/math/Color.h>

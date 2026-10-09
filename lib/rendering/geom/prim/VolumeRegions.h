@@ -9,6 +9,9 @@
 
 #include <scene_rdl2/render/util/BitUtils.h>
 
+#include <array>
+#include <cstring>
+
 namespace moonray {
 namespace geom {
 namespace internal {

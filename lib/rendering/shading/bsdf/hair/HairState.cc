@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "HairState.h"
+#include <moonray/rendering/shading/bsdf/hair/HairState.h>
 #include <moonray/rendering/shading/Util.h>
 
 #include <scene_rdl2/common/math/ReferenceFrame.h>

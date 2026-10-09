@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //
-#include "Primvar.h"
+#include <moonray/map/primvar/Primvar.h>
 
 #include <sstream>
 

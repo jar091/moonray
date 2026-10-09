@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Camera.h"
+#include <moonray/rendering/pbr/camera/Camera.h>
 
 namespace moonray {
 namespace pbr {

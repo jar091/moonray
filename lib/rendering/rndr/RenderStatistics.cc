@@ -4,9 +4,9 @@
 
 #include <moonray/rendering/geom/prim/NamedPrimitive.h>
 
-#include "RenderStatistics.h"
-#include "Error.h"
-#include "RenderDriver.h"
+#include <moonray/rendering/rndr/RenderStatistics.h>
+#include <moonray/rendering/rndr/Error.h>
+#include <moonray/rendering/rndr/RenderDriver.h>
 
 #include <moonray/statistics/StatsTable.h>
 #include <moonray/statistics/StatsTableOutput.h>
@@ -25,14 +25,22 @@
 #include <scene_rdl2/common/math/Viewport.h>
 #include <scene_rdl2/common/math/Math.h>
 #include <scene_rdl2/render/logging/logging.h>
+#include <scene_rdl2/render/util/Files.h>   // isAbsolute
 #include <scene_rdl2/scene/rdl2/RenderOutput.h>
 #include <scene_rdl2/scene/rdl2/rdl2.h>
 
 #include <ctime>
 #include <iomanip>
 #include <fstream>
+#ifdef _WIN32
+#include <direct.h>             // _getcwd
+#include <windows.h>            // GetComputerNameA, GetModuleFileNameA
+#define MAXPATHLEN _MAX_PATH
+#define getcwd _getcwd
+#else
 #include <sys/param.h>
 #include <unistd.h>
+#endif
 
 #ifndef HOST_NAME_MAX
 # ifdef _POSIX_HOST_NAME_MAX
@@ -121,12 +129,23 @@ addLaneUtilization(moonray_stats::StatsTable<2> &table, const pbr::Statistics &p
 std::string
 getExecutablePath()
 {
+#ifdef _WIN32
+    // GetModuleFileNameA(nullptr, ...) is the Win32 equivalent of reading
+    // /proc/self/exe: it names the image the process was started from.
+    char winDest[MAXPATHLEN] = {0};
+    const DWORD winLen = GetModuleFileNameA(nullptr, winDest, static_cast<DWORD>(sizeof(winDest)));
+    if (winLen == 0 || winLen >= sizeof(winDest)) {
+        throw std::runtime_error(std::string("Unable to get self path: ") + getErrorDescription());
+    }
+    return winDest;
+#else
     // readlink does not append '\0'
     char dest[PATH_MAX] = {0};
     if (readlink("/proc/self/exe", dest, PATH_MAX - 1) < 0) {
         throw std::runtime_error(std::string("Unable to get self path: ") + getErrorDescription());
     }
     return dest;
+#endif
 }
 
 }
@@ -154,12 +173,24 @@ RenderStats::RenderStats():
     mFrameStartTime = time::getTime();
     mFrameStartUtilization = mProcessStats.getProcessUtilization();
 
+#ifdef _WIN32
+    // gethostname() is a Winsock call and would drag WSAStartup() in; the Win32
+    // computer name is the same machine identifier and needs no initialization.
+    char hostName[MAX_COMPUTERNAME_LENGTH + 1];
+    DWORD hostNameSize = static_cast<DWORD>(sizeof(hostName));
+    if (GetComputerNameA(hostName, &hostNameSize)) {
+        mHostName = hostName;
+    } else {
+        mHostName = "N/A";
+    }
+#else
     char hostName[HOST_NAME_MAX];
     if (gethostname(hostName, HOST_NAME_MAX) == 0) {
         mHostName = hostName;
     } else {
         mHostName = "N/A";
     }
+#endif
     char curPath[MAXPATHLEN];
     getcwd(curPath, MAXPATHLEN);
     mCurPath = curPath;
@@ -328,7 +359,12 @@ RenderStats::getFullPath(const std::string& filename) const
 {
     std::ostringstream out;
 
-    if (!filename.empty() && filename[0] != '/') {
+    // scene_rdl2::util::isAbsolute rather than a leading '/': on Windows an
+    // absolute path normally starts with a drive letter, so the original test
+    // classified "C:\dir\file.exr" as relative and the banner reported it
+    // prefixed with the CWD ("F:\work\proj/C:\dir\file.exr"). Display only -
+    // the path actually opened comes from RenderOptions, not from here.
+    if (!filename.empty() && !scene_rdl2::util::isAbsolute(filename)) {
         out << mCurPath << '/';
     }
     out << filename;

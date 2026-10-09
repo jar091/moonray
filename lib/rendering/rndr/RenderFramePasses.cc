@@ -10,11 +10,11 @@
 #include <scene_rdl2/render/util/AtomicFloat.h> // Needs to be included before any OpenImageIO file
 #include <moonray/rendering/pbr/core/Scene.h>
 
-#include "RenderDriver.h"
-#include "AdaptiveRenderTilesTable.h"
-#include "DisplayFilterDriver.h"
-#include "PixSampleRuntimeVerify.h"
-#include "RenderContext.h"
+#include <moonray/rendering/rndr/RenderDriver.h>
+#include <moonray/rendering/rndr/AdaptiveRenderTilesTable.h>
+#include <moonray/rendering/rndr/DisplayFilterDriver.h>
+#include <moonray/rendering/rndr/PixSampleRuntimeVerify.h>
+#include <moonray/rendering/rndr/RenderContext.h>
 
 #include <moonray/rendering/rndr/adaptive/ActivePixelMask.h>
 
@@ -47,6 +47,19 @@
 #ifdef TBB_MCRT_THREADPOOL
 #include <tbb/task_group.h>
 #endif // end TBB_MCRT_THREADPOOL
+
+#include <thread>               // sleep_for
+
+#ifdef _WIN32
+#include <io.h>                 // _isatty
+#include <cstdio>               // _fileno
+// There is no fixed descriptor number on Windows; _fileno(stdout) is the
+// equivalent of the POSIX STDOUT_FILENO constant.
+#define isatty _isatty
+#define STDOUT_FILENO _fileno(stdout)
+#else
+#include <unistd.h>             // isatty, STDOUT_FILENO
+#endif
 
 // Debug message display for adaptive sampling stage rendering
 //#define PRINT_DEBUG_MESSAGE_ADAPTIVE_STAGE
@@ -188,7 +201,7 @@ RenderDriver::renderPasses(RenderDriver *driver, const FrameState &fs,
     size_t parallelInitFrameUpdateMinTileTotal = 0;
     if (driver->mParallelInitFrameUpdate) {
         parallelInitFrameUpdateMinTileTotal =
-            std::max(1UL,
+            std::max(static_cast<size_t>(1), // 1UL is 32-bit on LLP64, so it would not match size_t
                      static_cast<size_t>(workQueue->getNumTiles()) / driver->mParallelInitFrameUpdateMcrtCount);
         /* useful debug message
         std::cerr << ">> RenderFramePasses.cc init minTileTotal:" << parallelInitFrameUpdateMinTileTotal
@@ -239,10 +252,8 @@ RenderDriver::renderPasses(RenderDriver *driver, const FrameState &fs,
                 // about them constantly. Shortest context switching interval is around 10ms (I guess).
                 // So sometimes some threads need to wait extra 10ms or so to wake up from suspended condition.
                 // Obviously 10ms loss is big for realtime render case but this solution is a best result so far.
-                struct timespec tm;
-                tm.tv_sec = 0;
-                tm.tv_nsec = 1000; // 0.001ms : tested several different range but could not find any difference.
-                nanosleep(&tm, NULL); // yield CPU resource
+                // 0.001ms : tested several different range but could not find any difference.
+                std::this_thread::sleep_for(std::chrono::nanoseconds(1000)); // yield CPU resource
             }
 
             double timeReady = scene_rdl2::util::getSeconds(); // get current time

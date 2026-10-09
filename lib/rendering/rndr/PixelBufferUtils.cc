@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "PixelBufferUtils.h"
-#include "ExrUtils.h"
-#include "Util.h"
+#include <moonray/rendering/rndr/PixelBufferUtils.h>
+#include <moonray/rendering/rndr/ExrUtils.h>
+#include <moonray/rendering/rndr/Util.h>
 
 #include <scene_rdl2/common/except/exceptions.h>
 #include <scene_rdl2/common/fb_util/PixelBufferUtilsGamma8bit.h>

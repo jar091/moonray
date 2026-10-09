@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Light.h"
+#include <moonray/rendering/pbr/light/Light.h>
 #include <moonray/rendering/pbr/core/Util.h>
 #include <moonray/rendering/pbr/lightfilter/LightFilter.h>
 #include <moonray/rendering/pbr/light/Light_ispc_stubs.h>

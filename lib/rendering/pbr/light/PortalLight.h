@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "Light.h"
-#include "RectLight.h"
+#include <moonray/rendering/pbr/light/Light.h>
+#include <moonray/rendering/pbr/light/RectLight.h>
 
 // Forward declaration of the ISPC types
 namespace ispc {

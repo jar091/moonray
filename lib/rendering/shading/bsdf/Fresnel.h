@@ -10,7 +10,7 @@
 
 #include <moonray/rendering/shading/ispc/bsdf/Fresnel.hh>
 #include <moonray/rendering/shading/PbrValidity.h>
-#include "fabric/VelvetAlbedo.h"
+#include <moonray/rendering/shading/bsdf/fabric/VelvetAlbedo.h>
 
 #include <moonray/rendering/shading/ispc/bsdf/Fresnel_ispc_stubs.h>
 

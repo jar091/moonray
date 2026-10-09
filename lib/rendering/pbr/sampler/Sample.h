@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Sample.hh"
+#include <moonray/rendering/pbr/sampler/Sample.hh>
 #include <scene_rdl2/common/platform/Platform.h>
 
 #include <istream>

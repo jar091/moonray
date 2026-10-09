@@ -4,18 +4,18 @@
 //
 //
 #pragma once
-#include "AdaptiveRenderTileInfo.h"
-#include "CheckpointController.h"
-#include "DisplayFilterDriver.h"
-#include "FrameState.h"
-#include "Film.h"
-#include "RenderProgressEstimation.h"
-#include "RenderStatistics.h"
-#include "RenderTimingRecord.h"
-#include "TileWorkQueue.h"
-#include "TileScheduler.h"
-#include "Types.h"
-#include "Util.h"
+#include <moonray/rendering/rndr/AdaptiveRenderTileInfo.h>
+#include <moonray/rendering/rndr/CheckpointController.h>
+#include <moonray/rendering/rndr/DisplayFilterDriver.h>
+#include <moonray/rendering/rndr/FrameState.h>
+#include <moonray/rendering/rndr/Film.h>
+#include <moonray/rendering/rndr/RenderProgressEstimation.h>
+#include <moonray/rendering/rndr/RenderStatistics.h>
+#include <moonray/rendering/rndr/RenderTimingRecord.h>
+#include <moonray/rendering/rndr/TileWorkQueue.h>
+#include <moonray/rendering/rndr/TileScheduler.h>
+#include <moonray/rendering/rndr/Types.h>
+#include <moonray/rendering/rndr/Util.h>
 #include <moonray/rendering/rndr/adaptive/ActivePixelMask.h>
 #include <moonray/rendering/pbr/camera/StereoView.h>
 #include <moonray/rendering/pbr/core/XPUOcclusionRayQueue.h>
@@ -676,7 +676,7 @@ private:
     float                      mCachedDeepCurvatureTolerance;
     float                      mCachedDeepZTolerance;
     float                      mCachedTargetAdaptiveError;
-    uint                       mCachedDeepVolCompressionRes;
+    unsigned int                       mCachedDeepVolCompressionRes;
     std::vector<std::string>   mCachedDeepIDChannelNames;
     scene_rdl2::math::Viewport mCachedViewport;
     SamplingMode               mCachedSamplingMode;

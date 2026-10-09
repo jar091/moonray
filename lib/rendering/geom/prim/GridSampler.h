@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "GeomTLState.h"
+#include <moonray/rendering/geom/prim/GeomTLState.h>
 
 #include <moonray/rendering/mcrt_common/ThreadLocalState.h>
 #include <scene_rdl2/common/math/Color.h>

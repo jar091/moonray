@@ -3,8 +3,8 @@
 
 //
 //
-#include "RenderProgressEstimation.h"
-#include "RenderTimingRecord.h"
+#include <moonray/rendering/rndr/RenderProgressEstimation.h>
+#include <moonray/rendering/rndr/RenderTimingRecord.h>
 
 #include <scene_rdl2/common/platform/Platform.h> // scene_rdl2::util::getSeconds()
 

@@ -24,7 +24,7 @@ target_sources(${objLib}
 file(RELATIVE_PATH relBinDir ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 set_target_properties(${objLib} PROPERTIES
     ISPC_HEADER_SUFFIX _ispc_stubs.h
-    ISPC_HEADER_DIRECTORY /${relBinDir}
+    ISPC_HEADER_DIRECTORY ${GLOBAL_ISPC_HEADER_DIR_PREFIX}${relBinDir}
     ISPC_INSTRUCTION_SETS ${GLOBAL_ISPC_INSTRUCTION_SETS}
     LINKER_LANGUAGE CXX
 )
@@ -93,6 +93,11 @@ target_link_libraries(${component}
         SceneRdl2::scene_rdl2
         TBB::tbb
 )
+
+if(IsWindowsPlatform)
+    # Util.cc: SymInitialize()/SymFromAddr() (the backtrace_symbols equivalent)
+    target_link_libraries(${component} PRIVATE dbghelp)
+endif()
 
 add_dependencies(${component} ${objLib})
 

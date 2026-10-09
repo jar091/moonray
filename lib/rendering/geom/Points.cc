@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Points.h"
+#include <moonray/rendering/geom/Points.h>
 
 #include <moonray/rendering/geom/PrimitiveVisitor.h>
 #include <moonray/rendering/geom/ProceduralContext.h>

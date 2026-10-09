@@ -4,7 +4,7 @@
 ///
 /// @file Ray.cc
 
-#include "Ray.h"
+#include <moonray/rendering/mcrt_common/Ray.h>
 #include <scene_rdl2/common/platform/HybridVaryingData.h>
 
 /// Defining this avoid rays differential computations. Mainly useful for

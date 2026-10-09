@@ -3,10 +3,10 @@
 
 #include <moonray/rendering/geom/prim/Primitive.h>
 
-#include "EmbreeAccelerator.h"
+#include <moonray/rendering/rt/EmbreeAccelerator.h>
 
-#include "AcceleratorUtils.h"
-#include "IntersectionFilters.h"
+#include <moonray/rendering/rt/AcceleratorUtils.h>
+#include <moonray/rendering/rt/IntersectionFilters.h>
 
 #include <moonray/rendering/geom/PolygonMesh.h>
 #include <moonray/rendering/geom/PrimitiveVisitor.h>

@@ -14,32 +14,17 @@ if(NOT INPUT_FILES MATCHES ";")
     string(REPLACE " " ";" INPUT_FILES "${INPUT_FILES}")
 endif()
 
-# Use platform-specific tools to concatenate binary files
-file(WRITE "${OUTPUT_FILE}" "")
-
-foreach(input_file ${INPUT_FILES})
-    file(READ "${input_file}" content HEX)
-    string(APPEND output_hex "${content}")
-endforeach()
-
-if(CMAKE_HOST_WIN32)
-    # On Windows, use type command
-    string(REPLACE ";" " " files_list "${INPUT_FILES}")
-    execute_process(
-        COMMAND cmd /c "type ${files_list} > ${OUTPUT_FILE}"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        RESULT_VARIABLE result
-    )
-else()
-    # On Unix-like systems, use cat command
-    execute_process(
-        COMMAND cat ${INPUT_FILES}
-        OUTPUT_FILE "${OUTPUT_FILE}"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        RESULT_VARIABLE result
-    )
-endif()
+# "cmake -E cat" concatenates in binary mode on every platform (CMake >= 3.18),
+# so no per-platform branch is needed. It replaces a "cat" that only existed on
+# Unix and a "cmd /c type" that could not work on Windows: "type" prints a
+# banner line for each of several input files, which would corrupt the blob,
+# and it cannot redirect to a forward-slash path.
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E cat ${INPUT_FILES}
+    OUTPUT_FILE "${OUTPUT_FILE}"
+    RESULT_VARIABLE result
+)
 
 if(NOT result EQUAL 0)
-    message(FATAL_ERROR "Failed to concatenate binary files")
+    message(FATAL_ERROR "Failed to concatenate binary files: ${result}")
 endif()

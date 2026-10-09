@@ -20,7 +20,11 @@ endif()
 
 find_package(Amorphous QUIET)
 
-if(NOT APPLE)
+# Mirror the build-time condition in moonray/CMakeLists.txt: libatomic is a GCC
+# runtime library, so neither Darwin nor MSVC has one to find. The `NOT APPLE`
+# form predates the Windows port and made every consumer of the installed
+# config package fail with "Could NOT find Libatomic" on Windows.
+if(NOT APPLE AND NOT WIN32)
   find_dependency(Libatomic)
 endif()
 find_dependency(ZLIB)

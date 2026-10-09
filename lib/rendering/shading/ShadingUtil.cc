@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "ShadingUtil.h"
+#include <moonray/rendering/shading/ShadingUtil.h>
 
 #include <moonray/rendering/shading/AttributeKey.h>
 #include <moonray/rendering/shading/ShadingTLState.h>

@@ -1,7 +1,7 @@
 // Copyright 2023-2024 DreamWorks Animation LLC
 // SPDX-License-Identifier: Apache-2.0
 
-#include "InstanceAttributes.h"
+#include <moonray/rendering/shading/InstanceAttributes.h>
 
 #include <moonray/rendering/mcrt_common/Types.h>
 

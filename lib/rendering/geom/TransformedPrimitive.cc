@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "TransformedPrimitive.h"
+#include <moonray/rendering/geom/TransformedPrimitive.h>
 
 #include <moonray/rendering/geom/Api.h>
 #include <moonray/rendering/geom/PrimitiveVisitor.h>

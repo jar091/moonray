@@ -5,7 +5,7 @@
 //
 #pragma once
 
-#include "AdaptiveRenderTileInfo.h"
+#include <moonray/rendering/rndr/AdaptiveRenderTileInfo.h>
 
 #include <scene_rdl2/common/platform/Platform.h> // finline
 #include <scene_rdl2/render/util/AtomicFloat.h>
@@ -18,7 +18,7 @@
 namespace scene_rdl2 {
 
 namespace math {
-class Viewport;
+struct Viewport;
 }
 namespace fb_util {
 class Tile;

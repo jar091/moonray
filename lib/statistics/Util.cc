@@ -6,8 +6,14 @@
 
 #include "Util.h"
 
+#if defined(_WIN32)
+#include <cstdio>     // stdout, _fileno
+#include <io.h>       // _isatty
+#include <windows.h>  // GetConsoleScreenBufferInfo
+#else
 #include <sys/ioctl.h>
 #include <unistd.h>
+#endif
 
 namespace moonray_stats {
 
@@ -39,6 +45,19 @@ std::pair<std::string, std::string> splitMiddle(const std::string& s)
 
 int computeWindowWidth()
 {
+#if defined(_WIN32)
+    // If attached to a terminal...
+    if (_isatty(_fileno(stdout))) {
+        // Get the console window width. srWindow is the visible portion of the
+        // screen buffer, which is the analogue of ws_col (dwSize.X is the
+        // scrollback buffer width, which can be wider).
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+            return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        }
+    }
+    return 72;
+#else
     // If attached to a terminal...
     if (isatty(STDOUT_FILENO)) {
         // Get the terminal width.
@@ -48,6 +67,7 @@ int computeWindowWidth()
     } else {
         return 72;
     }
+#endif
 }
 
 std::string createDashTitle(std::string s)

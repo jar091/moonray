@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#include "Statistics.h"
+#include <moonray/rendering/pbr/core/Statistics.h>
 #include <scene_rdl2/common/platform/HybridUniformData.h>
 
 namespace ispc {

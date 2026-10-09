@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "Instance.h"
+#include <moonray/rendering/geom/prim/Instance.h>
 
 #include <moonray/rendering/geom/prim/BVHUserData.h>
 #include <moonray/rendering/geom/prim/GeomTLState.h>

@@ -6,7 +6,7 @@
 /// $Id$
 ///
 
-#include "TriMesh.h"
+#include <moonray/rendering/geom/prim/TriMesh.h>
 
 #include <moonray/rendering/geom/prim/MeshTessellationUtil.h>
 

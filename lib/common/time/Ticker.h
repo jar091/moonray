@@ -12,6 +12,8 @@
 
 #if __ARM_NEON__
 #include <scene_rdl2/common/arm/emulation.h>
+#elif defined(_MSC_VER)
+#include <intrin.h>   // MSVC has no <x86intrin.h>; __rdtsc lives here
 #else
 #include <x86intrin.h>
 #endif
