@@ -35,10 +35,14 @@ ProjectiveCamera::ProjectiveCamera(const scene_rdl2::rdl2::Camera* rdlCamera) :
 
 void ProjectiveCamera::initAttributeKeys(const scene_rdl2::rdl2::SceneClass& sceneClass)
 {
-    if (sAttributeKeyInitialized) {
-        return;
-    }
-
+    // These keys are shared by every projective camera, but an attribute key
+    // is a position in *one* SceneClass, and PerspectiveCamera and
+    // OrthographicCamera declare these attributes at different positions.
+    // Filling them in once, for whichever camera class came first, made a
+    // camera of the other class read its depth of field settings from the
+    // wrong attributes - or from beyond the end of the object. They are
+    // therefore looked up again for the class at hand, every time a camera
+    // is created or updated.
     MOONRAY_START_NON_THREADSAFE_STATIC_WRITE
 
     sAttributeKeyInitialized = true;
@@ -56,6 +60,11 @@ void ProjectiveCamera::initAttributeKeys(const scene_rdl2::rdl2::SceneClass& sce
 void
 ProjectiveCamera::updateImpl(const Mat4d &world2render)
 {
+    // The keys below must be those of this camera's class (see
+    // initAttributeKeys()): another projective camera may have been created
+    // since this one was.
+    initAttributeKeys(getRdlCamera()->getSceneClass());
+
     // aperture window: derive from aperture viewport
     float invAspectRatio = getApertureWindowHeight() / getApertureWindowWidth();
     mWindow[0] = -1.0f;

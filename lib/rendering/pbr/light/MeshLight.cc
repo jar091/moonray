@@ -819,6 +819,14 @@ MeshLight::setMesh(geom::internal::Primitive* prim)
             float energy = 0.0f;
             mcrt_common::ThreadLocalState *tls = mcrt_common::getFrameUpdateTLS();
 
+            // The map is evaluated in render space, as it is when the light
+            // is sampled; the faces are in the local space of the light.
+            const scene_rdl2::math::Vec3f renderNormal =
+                xformNormalLocal2RenderRot(faces[f].mNormal, centroidTime);
+            const auto renderPoint = [&](const scene_rdl2::math::Vec3f& local) {
+                return xformPointLocal2Render(local, centroidTime);
+            };
+
             // In order to approximate the energy of a face, we sample at each
             // corner of the face and its center and take the maximum color value.
             // Due to the location of the samples, it is trivial to compute most
@@ -826,12 +834,14 @@ MeshLight::setMesh(geom::internal::Primitive* prim)
 
             // sample texture at first corner of the face
             const scene_rdl2::math::Color& firstColor = sampleMapShader(tls, geomID, f,
-                getFaceVertex(faces[f], 0, centroidTime), faces[f].mNormal, scene_rdl2::math::Vec2f(0.f, 0.f));
+                renderPoint(getFaceVertex(faces[f], 0, centroidTime)), renderNormal,
+                scene_rdl2::math::Vec2f(0.f, 0.f));
             energy = scene_rdl2::math::max(energy, luminance(firstColor));
 
             // sample texture at second corner of the face
             const scene_rdl2::math::Color& secondColor = sampleMapShader(tls, geomID, f,
-                getFaceVertex(faces[f], 1, centroidTime), faces[f].mNormal, scene_rdl2::math::Vec2f(1.f, 0.f));
+                renderPoint(getFaceVertex(faces[f], 1, centroidTime)), renderNormal,
+                scene_rdl2::math::Vec2f(1.f, 0.f));
             energy = scene_rdl2::math::max(energy, luminance(secondColor));
 
             // sample texture at third corner of the face
@@ -844,13 +854,14 @@ MeshLight::setMesh(geom::internal::Primitive* prim)
                 thirdUV = scene_rdl2::math::Vec2f(1.f, 1.f);
             }
             const scene_rdl2::math::Color& thirdColor = sampleMapShader(tls, geomID, f,
-                getFaceVertex(faces[f], 2, centroidTime), faces[f].mNormal, thirdUV);
+                renderPoint(getFaceVertex(faces[f], 2, centroidTime)), renderNormal, thirdUV);
             energy = scene_rdl2::math::max(energy, luminance(thirdColor));
 
             // sample texture at fourth corner if the face is a quad
             if (faceVertexCount == 4) {
                 const scene_rdl2::math::Color& fourthColor = sampleMapShader(tls, geomID, f,
-                    getFaceVertex(faces[f], 3, centroidTime), faces[f].mNormal, scene_rdl2::math::Vec2f(0.f, 1.f));
+                    renderPoint(getFaceVertex(faces[f], 3, centroidTime)), renderNormal,
+                    scene_rdl2::math::Vec2f(0.f, 1.f));
                 energy = scene_rdl2::math::max(energy, luminance(fourthColor));
             }
 
@@ -870,7 +881,7 @@ MeshLight::setMesh(geom::internal::Primitive* prim)
                 centerUV = getQuadUVCoordinates(p0, p1, p2, p3, center);
             }
             const scene_rdl2::math::Color& centerColor = sampleMapShader(tls, geomID, f,
-                faces[f].mCenter, faces[f].mNormal, centerUV);
+                renderPoint(faces[f].mCenter), renderNormal, centerUV);
             energy = scene_rdl2::math::max(energy, luminance(centerColor));
             faces[f].mEnergy = energy * area;
         } else {
@@ -1834,7 +1845,12 @@ MeshLight::eval(mcrt_common::ThreadLocalState* tls, const scene_rdl2::math::Vec3
     // sample the texture
     // TODO: Use texture derivatives
     if (mMapShader) {
-        radiance *= sampleMapShader(tls, isect.geomID, isect.primID, p, isect.N, isect.uv);
+        // The map is evaluated on the light: at the point which emits, not at
+        // the point p which is lit. A map which reads the position (object or
+        // world space coordinates, a gradient across the mesh) got the
+        // position of the receiver here.
+        const scene_rdl2::math::Vec3f hit = p + wi * isect.distance;
+        radiance *= sampleMapShader(tls, isect.geomID, isect.primID, hit, isect.N, isect.uv);
     }
 
     MNRY_ASSERT(isFinite(radiance));

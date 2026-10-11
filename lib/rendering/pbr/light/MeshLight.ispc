@@ -584,9 +584,12 @@ MeshLight_eval(const uniform Light * uniform li,
     // sample the texture
     // TODO: Use texture derivatives
     if (light->mMapShader) {
-        // Initialize shading state
+        // Initialize shading state. The map is evaluated on the light: at the
+        // point which emits, not at the point p which is lit (see
+        // MeshLight::eval()).
         varying State state;
-        CPP_initShadingState(light, tls, &isect.geomID, &isect.primID, &p.x, &isect.N.x, &isect.uv.x, lanemask(),
+        const varying Vec3f hit = p + wi * isect.distance;
+        CPP_initShadingState(light, tls, &isect.geomID, &isect.primID, &hit.x, &isect.N.x, &isect.uv.x, lanemask(),
             state);
 
         // we have a binding, find the sample function and evaluate it
